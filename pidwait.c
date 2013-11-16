@@ -1,6 +1,8 @@
 /* Copyright 2013 Tuomo Hartikainen <tuomo.hartikainen@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
+#define _XOPEN_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
