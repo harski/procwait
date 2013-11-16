@@ -13,10 +13,9 @@
 	do { if (DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
 				__LINE__, __func__, __VA_ARGS__); } while (0)
 
-#define FILE_BUF_LEN 256
 #define FILENAME_BUF_LEN 32
+#define STAT_COL_LEN 32
 #define START_TIME_INDEX 21
-#define START_TIME_BUFLEN 16
 
 
 struct options {
@@ -26,6 +25,11 @@ struct options {
 	int verbose;
 };
 
+enum {
+	STAT_PID,
+	STAT_PNAME,
+	STAT_T0 = 21
+};
 
 static unsigned long long get_process_start_time (unsigned pid);
 static void load_default_opts (struct options *opt);
@@ -70,8 +74,7 @@ static long long unsigned get_process_start_time (unsigned pid)
 {
 	FILE *file;
 	char filename[FILENAME_BUF_LEN];
-	char file_cont[FILE_BUF_LEN];
-	char time_str[START_TIME_BUFLEN];
+	char time_str[STAT_COL_LEN];
 	unsigned long long start_time;
 	int len; /* start time_str length */
 	int ws; /* Counter for whitespace */
