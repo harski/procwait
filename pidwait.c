@@ -17,7 +17,6 @@
 
 #define FILENAME_BUF_LEN 32
 #define STAT_COL_LEN 32
-#define START_TIME_INDEX 21
 
 
 struct options {
@@ -91,7 +90,7 @@ static long long unsigned get_process_start_time (unsigned pid)
 		goto pst_err;
 
 	/* find start index */
-	for (ws = 0; ws < START_TIME_INDEX;) {
+	for (ws = 0; ws < STAT_T0; ) {
 		tmp = fgetc(file);
 		if (tmp == EOF)
 			goto pst_close_err;
