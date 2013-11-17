@@ -20,12 +20,18 @@
 
 
 struct options {
-	unsigned pid;
 	unsigned sleep;
-	unsigned t0;
 	int verbose;
 };
 
+/* contents of the parsed file /proc/PID/stat */
+struct stat {
+	unsigned pid;
+	char pname[STAT_COL_LEN];
+	unsigned t0;
+};
+
+/* Field indexes for file /proc/PID/stat */
 enum {
 	STAT_PID,
 	STAT_PNAME,
@@ -34,13 +40,13 @@ enum {
 
 static unsigned long long get_process_start_time (unsigned pid);
 static void load_default_opts (struct options *opt);
-static int parse_options (int argc, char **argv, struct options *opt);
+static int parse_options (int argc, char **argv, struct options *opt, unsigned *pid);
 
 
 int main (int argc, char **argv)
 {
 	struct options opt;
-	unsigned long long t0;
+	struct stat proc;
 	int retval;
 
 	debug_print("%s", "Loading default options\n");
@@ -48,7 +54,7 @@ int main (int argc, char **argv)
 	debug_print("%s", "Loading default options done!\n");
 
 	debug_print("%s", "Parsing options\n");
-	retval = parse_options(argc, argv, &opt);
+	retval = parse_options(argc, argv, &opt, &(proc.pid));
 	debug_print("%s", "Parsing options done\n");
 
 	if (retval) {
@@ -57,14 +63,20 @@ int main (int argc, char **argv)
 		return retval > 0 ? retval : 1;
 	}
 
-	opt.t0 = get_process_start_time(opt.pid);
+	proc.t0 = get_process_start_time(proc.pid);
 
 	if (opt.verbose)
-		printf("Waiting for PID %u to terminate\n", opt.pid);
+		printf("Waiting for PID %u to terminate\n", proc.pid);
 
-	while (opt.t0 == get_process_start_time(opt.pid)) {
-		debug_print("Process running, sleeping %u seconds\n", opt.sleep);
-		sleep(opt.sleep);
+	while (1) {
+		struct stat tmp;
+		tmp.t0 = get_process_start_time(proc.pid);
+		if ( proc.t0 == tmp.t0) {
+			debug_print("Process running, sleeping %u seconds\n", opt.sleep);
+			sleep(opt.sleep);
+		} else {
+			break;
+		}
 	}
 
 	return 0;
@@ -135,9 +147,7 @@ pst_err:
 
 static void load_default_opts (struct options *opt)
 {
-	opt->pid = 0;
 	opt->sleep = 1;
-	opt->t0 = 0;
 	opt->verbose = 0;
 
 #if DEBUG
@@ -147,14 +157,12 @@ static void load_default_opts (struct options *opt)
 
 
 /* returns 0 on success, error code for errors */
-static int parse_options (int argc, char **argv, struct options *opt)
+static int parse_options (int argc, char **argv, struct options *opt, unsigned *pid)
 {
 	int option;
 	int retval = 0;
 
 	/* temp values for argv validation */
-	char tmpc;
-	long tmpl;
 	char *tmpstr;
 	unsigned long tmpul;
 
@@ -166,7 +174,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			debug_print("Found option '%c'\n", (char) option);
 			/* validate ctmp to sleep_int */
 			tmpul = strtoul(optarg, &tmpstr, 10);
-			if (tmpc == '\0') {
+			if (*tmpstr == '\0') {
 				opt->sleep = (unsigned) tmpul;
 			} else {
 				fprintf(stderr,
@@ -191,8 +199,8 @@ static int parse_options (int argc, char **argv, struct options *opt)
 		retval = 3;
 	} else {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
-		if (tmpc == '\0') {
-			opt->pid = (unsigned) tmpul;
+		if (*tmpstr == '\0') {
+			*pid = (unsigned) tmpul;
 		} else {
 			fprintf(stderr, "Error: Invalid PID '%s'\n", optarg);
 			retval = 4;
