@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #ifndef DEBUG
@@ -20,6 +21,7 @@
 
 
 struct options {
+	unsigned pid;
 	unsigned sleep;
 	int verbose;
 };
@@ -38,15 +40,17 @@ enum {
 	STAT_T0 = 21
 };
 
-static unsigned long long get_process_start_time (unsigned pid);
+static int handle_field (unsigned field, const char *field_buf, struct stat *s);
 static void load_default_opts (struct options *opt);
-static int parse_options (int argc, char **argv, struct options *opt, unsigned *pid);
+static int parse_options (int argc, char **argv, struct options *opt);
+static int parse_stat_file (unsigned pid, struct stat *s);
+static int validate_stat_file (const struct stat *s);
 
 
 int main (int argc, char **argv)
 {
 	struct options opt;
-	struct stat proc;
+	struct stat proc = { 0, "", 0 };
 	int retval;
 
 	debug_print("%s", "Loading default options\n");
@@ -54,7 +58,7 @@ int main (int argc, char **argv)
 	debug_print("%s", "Loading default options done!\n");
 
 	debug_print("%s", "Parsing options\n");
-	retval = parse_options(argc, argv, &opt, &(proc.pid));
+	retval = parse_options(argc, argv, &opt);
 	debug_print("%s", "Parsing options done\n");
 
 	if (retval) {
@@ -63,14 +67,18 @@ int main (int argc, char **argv)
 		return retval > 0 ? retval : 1;
 	}
 
-	proc.t0 = get_process_start_time(proc.pid);
+	if (!parse_stat_file(opt.pid, &proc)) {
+		printf("Process %u not running\n", opt.pid);
+		return 0;
+	}
+	debug_print("PID is %u after parsing stat\n", proc.pid);
 
 	if (opt.verbose)
 		printf("Waiting for PID %u to terminate\n", proc.pid);
 
 	while (1) {
-		struct stat tmp;
-		tmp.t0 = get_process_start_time(proc.pid);
+		struct stat tmp = { 0, "", 0 };
+		parse_stat_file(proc.pid, &tmp);
 		if ( proc.t0 == tmp.t0) {
 			debug_print("Process running, sleeping %u seconds\n", opt.sleep);
 			sleep(opt.sleep);
@@ -83,65 +91,42 @@ int main (int argc, char **argv)
 }
 
 
-static long long unsigned get_process_start_time (unsigned pid)
+static int handle_field (unsigned field, const char *field_buf, struct stat *s)
 {
-	FILE *file;
-	char filename[FILENAME_BUF_LEN];
-	char time_str[STAT_COL_LEN];
-	unsigned long long start_time;
-	int len; /* start time_str length */
-	int ws; /* Counter for whitespace */
-	int tmp; /* int-width tmp var for characters in /proc/#/stat */
-	char cbuf; /* char tmp var for characters in /proc/#/stat */
+	int success = 0;
+	char *tmp;
 
-	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
-	file = fopen(filename, "r");
-
-	/* file could not be read: does it exist? */
-	if (file == NULL)
-		goto pst_err;
-
-	/* find start index */
-	for (ws = 0; ws < STAT_T0; ) {
-		tmp = fgetc(file);
-		if (tmp == EOF)
-			goto pst_close_err;
-
-		cbuf = (char) tmp;
-		if (cbuf == ' ')
-			++ws;
-	}
-
-	/* get start time as string */
-	len = 0;
-	while (1) {
-		tmp = (char) fgetc(file);
-		if (cbuf == EOF)
-			goto pst_close_err;
-
-		cbuf = (char) tmp;
-		if (cbuf == ' ') {
-			time_str[len] = cbuf;
-			break;
+	switch (field) {
+	case STAT_PID:
+		s->pid = strtoul(field_buf, &tmp, 10);
+		if (*tmp != '\0') {
+			s->pid = 0;
+			success = -1;
+			debug_print("field_buf = '%s'\n", field_buf);
+			debug_print("field_buf = '%s'\n", tmp);
 		}
-		time_str[len++] = cbuf;
+		debug_print("set pid to %u\n", s->pid);
+		break;
+	case STAT_PNAME:
+		/* both fields are of STAT_COL_LEN */
+		strcpy(s->pname, field_buf);
+		success = field_buf[0] == '\0' ? 1 : 0;
+		break;
+
+	case STAT_T0:
+		s->t0 = strtoul(field_buf, &tmp, 10);
+		if (*tmp != '\0') {
+			s->t0 = 0;
+			success = -1;
+		}
+		debug_print("set t0 to %u\n", s->t0);
+		break;
+
+	default:
+		success = 1;
 	}
 
-	if (len == 0)
-		goto pst_close_err;
-
-	/* We don't need the file anymore */
-	fclose(file);
-
-	start_time = strtoull(time_str, NULL, 10);
-
-	return start_time;
-
-pst_close_err:
-	fclose(file);
-
-pst_err:
-	return 0;
+	return success;
 }
 
 
@@ -157,7 +142,7 @@ static void load_default_opts (struct options *opt)
 
 
 /* returns 0 on success, error code for errors */
-static int parse_options (int argc, char **argv, struct options *opt, unsigned *pid)
+static int parse_options (int argc, char **argv, struct options *opt)
 {
 	int option;
 	int retval = 0;
@@ -171,7 +156,6 @@ static int parse_options (int argc, char **argv, struct options *opt, unsigned *
 	while ((option = getopt (argc, argv, "s:v")) != -1 && !retval) {
 		switch (option) {
 		case 's':
-			debug_print("Found option '%c'\n", (char) option);
 			/* validate ctmp to sleep_int */
 			tmpul = strtoul(optarg, &tmpstr, 10);
 			if (*tmpstr == '\0') {
@@ -184,7 +168,6 @@ static int parse_options (int argc, char **argv, struct options *opt, unsigned *
 			}
 			break;
 		case 'v':
-			debug_print("Found option '%c'\n", (char) option);
 			opt->verbose = 1;
 			break;
 		default:
@@ -200,7 +183,8 @@ static int parse_options (int argc, char **argv, struct options *opt, unsigned *
 	} else {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
 		if (*tmpstr == '\0') {
-			*pid = (unsigned) tmpul;
+			opt->pid = (unsigned) tmpul;
+			debug_print("PID to follow is %lu\n", tmpul);
 		} else {
 			fprintf(stderr, "Error: Invalid PID '%s'\n", optarg);
 			retval = 4;
@@ -208,5 +192,64 @@ static int parse_options (int argc, char **argv, struct options *opt, unsigned *
 	}
 
 	return retval;
+}
+
+
+static int parse_stat_file (unsigned pid, struct stat *s)
+{
+	FILE *file;
+	char filename[FILENAME_BUF_LEN];
+	char field_buf[STAT_COL_LEN];
+	unsigned field = 0;
+	int i, done;
+
+	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
+	file = fopen(filename, "r");
+
+	/* file could not be read: does it exist? */
+	if (file == NULL)
+		goto pst_err;
+
+	/* loop the fields */
+	for (i = 0, done = 0; !done; ++i) {
+		int ch = fgetc(file);
+
+		if (ch == EOF)
+			done = 1;
+
+		if (ch == ' ' || ch == EOF) {
+			field_buf[i] = '\0';
+
+			/* if handling a required field fails, bail out */
+			if (handle_field(field, field_buf, s) < 0)
+				goto pst_close_err;
+
+			/* now start buffering the next field */
+			i = 0;
+			++field;
+		}
+		field_buf[i] = (char) ch;
+	}
+
+	fclose(file);
+
+	return validate_stat_file(s);
+
+pst_close_err:
+	fclose(file);
+
+pst_err:
+	return 0;
+}
+
+
+int validate_stat_file (const struct stat *s)
+{
+	int valid = 1;
+
+	if (s->pid == 0 || s->t0 == 0)
+		valid = 0;
+
+	return valid;
 }
 
