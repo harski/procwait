@@ -40,6 +40,12 @@ enum {
 	STAT_T0 = 21
 };
 
+enum Error {
+	E_SUCCESS,
+	E_FAIL,
+	E_INVAL
+};
+
 static int handle_field (unsigned field, const char *field_buf, struct stat *s);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt);
@@ -61,11 +67,8 @@ int main (int argc, char **argv)
 	retval = parse_options(argc, argv, &opt);
 	debug_print("%s", "Parsing options done\n");
 
-	if (retval) {
-		fprintf(stderr, "An error '%d' occured during option parsing, "
-				"quitting...\n", retval);
-		return retval > 0 ? retval : 1;
-	}
+	if (retval != E_SUCCESS)
+		return retval;
 
 	if (!parse_stat_file(opt.pid, &proc)) {
 		printf("Process %u not running\n", opt.pid);
@@ -93,37 +96,40 @@ int main (int argc, char **argv)
 
 static int handle_field (unsigned field, const char *field_buf, struct stat *s)
 {
-	int success = 0;
+	int success = E_SUCCESS;
 	char *tmp;
 
 	switch (field) {
+	/* default case is we are not interested on the field in this index,
+	 * so return E_SUCCESS */
 	case STAT_PID:
 		s->pid = strtoul(field_buf, &tmp, 10);
 		if (*tmp != '\0') {
+			fprintf(stderr, "Error: failed to parse PID field from"
+					" /proc/PID/stat\n");
 			s->pid = 0;
-			success = -1;
+			success = E_FAIL;
 			debug_print("field_buf = '%s'\n", field_buf);
 			debug_print("field_buf = '%s'\n", tmp);
 		}
 		debug_print("set pid to %u\n", s->pid);
 		break;
+
 	case STAT_PNAME:
 		/* both fields are of STAT_COL_LEN */
 		strcpy(s->pname, field_buf);
-		success = field_buf[0] == '\0' ? 1 : 0;
 		break;
 
 	case STAT_T0:
 		s->t0 = strtoul(field_buf, &tmp, 10);
 		if (*tmp != '\0') {
+			fprintf(stderr, "Error: failed to parse process start"
+					" time from /proc/PID/stat\n");
 			s->t0 = 0;
-			success = -1;
+			success = E_FAIL;
 		}
 		debug_print("set t0 to %u\n", s->t0);
 		break;
-
-	default:
-		success = 1;
 	}
 
 	return success;
@@ -145,7 +151,7 @@ static void load_default_opts (struct options *opt)
 static int parse_options (int argc, char **argv, struct options *opt)
 {
 	int option;
-	int retval = 0;
+	int retval = E_SUCCESS;
 
 	/* temp values for argv validation */
 	char *tmpstr;
@@ -153,7 +159,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 
 	opterr = 0; /* Don't print getopt errors automatically */
 
-	while ((option = getopt (argc, argv, "s:v")) != -1 && !retval) {
+	while ((option = getopt(argc, argv, "s:v")) != -1 && !retval) {
 		switch (option) {
 		case 's':
 			/* validate ctmp to sleep_int */
@@ -164,7 +170,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 				fprintf(stderr,
 					"Error: Invalid sleep value '%s'\n",
 					optarg);
-				retval = 1;
+				retval = E_INVAL;
 			}
 			break;
 		case 'v':
@@ -172,14 +178,14 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			break;
 		default:
 			fprintf(stderr, "Error: unknown option '%c'\n", option);
-			retval = 2;
+			retval = E_INVAL;
 		}
 	}
 
 	/* check if PID is supplied */
 	if (optind == argc) {
 		fprintf(stderr, "Error: PID missing\n");
-		retval = 3;
+		retval = E_INVAL;
 	} else {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
 		if (*tmpstr == '\0') {
@@ -187,7 +193,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			debug_print("PID to follow is %lu\n", tmpul);
 		} else {
 			fprintf(stderr, "Error: Invalid PID '%s'\n", optarg);
-			retval = 4;
+			retval = E_INVAL;
 		}
 	}
 
@@ -202,6 +208,7 @@ static int parse_stat_file (unsigned pid, struct stat *s)
 	char field_buf[STAT_COL_LEN];
 	unsigned field = 0;
 	int i, done;
+	int retval = E_SUCCESS;
 
 	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
 	file = fopen(filename, "r");
@@ -221,7 +228,8 @@ static int parse_stat_file (unsigned pid, struct stat *s)
 			field_buf[i] = '\0';
 
 			/* if handling a required field fails, bail out */
-			if (handle_field(field, field_buf, s) < 0)
+			retval = handle_field(field, field_buf, s);
+			if (retval !=  E_SUCCESS)
 				goto pst_close_err;
 
 			/* now start buffering the next field */
