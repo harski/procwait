@@ -50,6 +50,7 @@ static int handle_field (unsigned field, const char *field_buf, struct stat *s);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt);
 static int parse_stat_file (unsigned pid, struct stat *s);
+static inline int stat_eq (const struct stat const *a, const struct stat const *b);
 static int validate_stat_file (const struct stat *s);
 
 
@@ -82,7 +83,8 @@ int main (int argc, char **argv)
 	while (1) {
 		struct stat tmp = { 0, "", 0 };
 		parse_stat_file(proc.pid, &tmp);
-		if ( proc.t0 == tmp.t0) {
+
+		if (stat_eq(&proc, &tmp)) {
 			debug_print("Process running, sleeping %u seconds\n", opt.sleep);
 			sleep(opt.sleep);
 		} else {
@@ -248,6 +250,15 @@ pst_close_err:
 
 pst_err:
 	return 0;
+}
+
+
+static inline int stat_eq (const struct stat const *a, const struct stat const *b)
+{
+	if (a->pid == b->pid && a->t0 == b->t0)
+		return 1;
+	else
+		return 0;
 }
 
 
