@@ -3,8 +3,10 @@
 
 #define _XOPEN_SOURCE
 
-#include <stdlib.h>
+#include <errno.h>
+#include <error.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -59,6 +61,7 @@ int main (int argc, char **argv)
 	struct options opt;
 	struct stat proc = { 0, "", 0 };
 	int retval;
+	int wait = 1;
 
 	debug_print("%s", "Loading default options\n");
 	load_default_opts(&opt);
@@ -80,7 +83,7 @@ int main (int argc, char **argv)
 	if (opt.verbose)
 		printf("Waiting for PID %u to terminate\n", proc.pid);
 
-	while (1) {
+	while (wait) {
 		struct stat tmp = { 0, "", 0 };
 		parse_stat_file(proc.pid, &tmp);
 
@@ -88,7 +91,7 @@ int main (int argc, char **argv)
 			debug_print("Process running, sleeping %u seconds\n", opt.sleep);
 			sleep(opt.sleep);
 		} else {
-			break;
+			wait = 0;
 		}
 	}
 
@@ -216,8 +219,13 @@ static int parse_stat_file (unsigned pid, struct stat *s)
 	file = fopen(filename, "r");
 
 	/* file could not be read: does it exist? */
-	if (file == NULL)
+	if (file == NULL) {
+		int err = errno;
+		if (err != ENOENT) {
+			error(0, err, "parse_stat_file()");
+		}
 		goto pst_err;
+	}
 
 	/* loop the fields */
 	for (i = 0, done = 0; !done; ++i) {
