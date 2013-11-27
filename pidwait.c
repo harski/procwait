@@ -5,6 +5,7 @@
 
 #include <errno.h>
 #include <error.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,7 +165,19 @@ static int parse_options (int argc, char **argv, struct options *opt)
 
 	opterr = 0; /* Don't print getopt errors automatically */
 
-	while ((option = getopt(argc, argv, "s:v")) != -1 && !retval) {
+	while (!retval) {
+		int option_index = 0;
+		static struct option long_options[] = {
+			{"sleep",	required_argument,	0, 's'},
+			{"verbose",	no_argument,		0, 'v'},
+			{0,		0,			0,  0 }
+		};
+
+		option = getopt_long(argc, argv, "s:v", long_options,
+					&option_index);
+		if (option == -1)
+			break;
+
 		switch (option) {
 		case 's':
 			/* validate ctmp to sleep_int */
