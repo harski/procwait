@@ -1,17 +1,19 @@
 
+cc=cc
+cflags=-O2 -std=c99 -Wall -Wextra -pedantic
 target=pidwait
-srcfile=pidwait.c
+objs=pidwait.o stat.o
 
 all: $(target)
 
-debug: $(target)-debug
+$(target): $(objs)
+	cc -o $@ $(cflags) $(objs)
 
-$(target): $(srcfile)
-	cc -o $@ -O2 -std=c99 $<
+pidwait.o: pidwait.c pidwait.h
+	$(cc) -c $(cflags) $< -o $@
 
-$(target)-debug: $(srcfile)
-	cc -o $@ -DDEBUG -Wall -Wextra -pedantic -std=c99 $<
+stat.o: stat.c stat.h
+	$(cc) -c $(cflags) $< -o $@
 
 clean:
-	rm -f $(target)
-	rm -f $(target)-debug
+	rm -f $(target) $(objs)
