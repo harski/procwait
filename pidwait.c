@@ -12,62 +12,106 @@
 #include "pidwait.h"
 #include "stat.h"
 
+#define PROGNAME "pidwait"
+#define VERSION_STR "0.1"
+
+#define LICENSE_STR "Copyright 2013 Tuomo Hartikainen "\
+			"<tuomo.hartikainen@harski.org>.\n"\
+			"Licensed under the 2-clause BSD license."
+
 
 struct options {
+	int action;
 	unsigned pid;
 	unsigned sleep;
 	int verbose;
 };
 
+enum {
+	A_NONE,
+	A_VERSION,
+	A_HELP
+};
+
+
+static int do_secondary_action (const struct options * const opt);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt);
+static void print_help ();
 
 
 int main (int argc, char **argv)
 {
 	struct options opt;
-	struct stat proc = { 0, "", 0 };
 	int retval;
-	int wait = 1;
 
-	debug_print("%s", "Loading default options\n");
 	load_default_opts(&opt);
-	debug_print("%s", "Loading default options done!\n");
-
-	debug_print("%s", "Parsing options\n");
 	retval = parse_options(argc, argv, &opt);
-	debug_print("%s", "Parsing options done\n");
 
 	if (retval != E_SUCCESS)
-		return retval;
+		goto exit_error;
 
-	if (!parse_stat_file(opt.pid, &proc)) {
-		printf("Process %u not running\n", opt.pid);
-		return 0;
-	}
-	debug_print("PID is %u after parsing stat\n", proc.pid);
+	if (opt.pid && opt.action == A_NONE) {
+		int wait = 1;
+		struct stat proc = { 0, "", 0 };
 
-	if (opt.verbose)
-		printf("Waiting for PID %u to terminate\n", proc.pid);
-
-	while (wait) {
-		struct stat tmp = { 0, "", 0 };
-		parse_stat_file(proc.pid, &tmp);
-
-		if (stat_eq(&proc, &tmp)) {
-			debug_print("Process running, sleeping %u seconds\n", opt.sleep);
-			sleep(opt.sleep);
-		} else {
-			wait = 0;
+		if (!parse_stat_file(opt.pid, &proc)) {
+			printf("Process %u not running\n", opt.pid);
+			retval = 0; /* not a "real" error */
+			goto exit_error;
 		}
+
+		if (opt.verbose)
+			printf("Waiting for PID %u to terminate\n", proc.pid);
+
+		while (wait) {
+			struct stat tmp = { 0, "", 0 };
+			parse_stat_file(proc.pid, &tmp);
+
+			if (stat_eq(&proc, &tmp)) {
+				debug_print("Process running, sleeping %u seconds\n", opt.sleep);
+				sleep(opt.sleep);
+			} else {
+				wait = 0;
+			}
+		}
+	} else {
+		do_secondary_action (&opt);
 	}
 
-	return 0;
+	retval = 0;
+
+exit_error:
+	return retval;
+}
+
+
+static int do_secondary_action (const struct options * const opt)
+{
+	int retval = 0;
+
+	switch (opt->action) {
+	case A_VERSION:
+		printf("%s version %s\n", PROGNAME, VERSION_STR);
+		printf("%s\n", LICENSE_STR);
+		break;
+
+	case A_HELP:
+		print_help();
+		break;
+
+	default:
+		retval = E_INVAL;
+	}
+
+	return retval;
 }
 
 
 static void load_default_opts (struct options *opt)
 {
+	opt->action = A_NONE;
+	opt->pid = 0;
 	opt->sleep = 1;
 	opt->verbose = 0;
 
@@ -92,8 +136,11 @@ static int parse_options (int argc, char **argv, struct options *opt)
 	while (!retval) {
 		int option_index = 0;
 		static struct option long_options[] = {
+			{"help",	no_argument,		0, 'H'},
 			{"sleep",	required_argument,	0, 's'},
 			{"verbose",	no_argument,		0, 'v'},
+			{"version",	no_argument,		0, 'V'},
+			{"usage",	no_argument,		0, 'H'},
 			{0,		0,			0,  0 }
 		};
 
@@ -103,6 +150,9 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			break;
 
 		switch (option) {
+		case 'H':
+			opt->action = A_HELP;
+			break;
 		case 's':
 			/* validate ctmp to sleep_int */
 			tmpul = strtoul(optarg, &tmpstr, 10);
@@ -115,20 +165,21 @@ static int parse_options (int argc, char **argv, struct options *opt)
 				retval = E_INVAL;
 			}
 			break;
+		case 'V':
+			opt->action = A_VERSION;
+			break;
 		case 'v':
 			opt->verbose = 1;
 			break;
 		default:
+			/* TODO: %c is always '?' */
 			fprintf(stderr, "Error: unknown option '%c'\n", option);
 			retval = E_INVAL;
 		}
 	}
 
 	/* check if PID is supplied */
-	if (optind == argc) {
-		fprintf(stderr, "Error: PID missing\n");
-		retval = E_INVAL;
-	} else {
+	if (optind != argc) {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
 		if (*tmpstr == '\0') {
 			opt->pid = (unsigned) tmpul;
@@ -142,4 +193,19 @@ static int parse_options (int argc, char **argv, struct options *opt)
 	return retval;
 }
 
+
+static void print_help ()
+{
+	printf("Usage: %s [OPTIONS] PID\n\n", PROGNAME);
+	printf("Options:\n");
+
+	printf("--help | --usage\n");
+	printf("\tPrint this help\n\n");
+
+	printf("-v | --verbose\n");
+	printf("\tBe verbose\n\n");
+
+	printf("-V | --version\n");
+	printf("\tPrint version information\n");
+}
 
