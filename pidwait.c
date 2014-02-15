@@ -1,4 +1,4 @@
-/* Copyright 2013 Tuomo Hartikainen <tuomo.hartikainen@harski.org>.
+/* Copyright 2013-2014 Tuomo Hartikainen <tuomo.hartikainen@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #define _XOPEN_SOURCE
@@ -15,7 +15,7 @@
 #define PROGNAME "pidwait"
 #define VERSION_STR "0.1"
 
-#define LICENSE_STR "Copyright 2013 Tuomo Hartikainen "\
+#define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\
 			"<tuomo.hartikainen@harski.org>.\n"\
 			"Licensed under the 2-clause BSD license."
 
@@ -200,12 +200,15 @@ static void print_help ()
 	printf("Options:\n");
 
 	printf("--help | --usage\n");
-	printf("\tPrint this help\n\n");
+	printf("\tPrint this help.\n\n");
+
+	printf("-s | --sleep\n");
+	printf("\tSleep time (in seconds) between process checks.\n\n");
 
 	printf("-v | --verbose\n");
-	printf("\tBe verbose\n\n");
+	printf("\tBe verbose.\n\n");
 
 	printf("-V | --version\n");
-	printf("\tPrint version information\n");
+	printf("\tPrint version information.\n");
 }
 
