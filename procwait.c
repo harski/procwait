@@ -9,10 +9,10 @@
 #include <unistd.h>
 
 #include "debug.h"
-#include "pidwait.h"
+#include "procwait.h"
 #include "stat.h"
 
-#define PROGNAME "pidwait"
+#define PROGNAME "procwait"
 #define VERSION_STR "0.1"
 
 #define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\

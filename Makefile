@@ -1,15 +1,15 @@
 
 cc=cc
 cflags=-O2 -std=c99 -Wall -Wextra -pedantic
-target=pidwait
-objs=pidwait.o stat.o
+target=procwait
+objs=procwait.o stat.o
 
 all: $(target)
 
 $(target): $(objs)
 	cc -o $@ $(cflags) $(objs)
 
-pidwait.o: pidwait.c pidwait.h
+procwait.o: procwait.c procwait.h
 	$(cc) -c $(cflags) $< -o $@
 
 stat.o: stat.c stat.h

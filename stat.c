@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "debug.h"
-#include "pidwait.h"
+#include "procwait.h"
 #include "stat.h"
 
 #define FILENAME_BUF_LEN 32
