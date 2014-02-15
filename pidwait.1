@@ -1,0 +1,28 @@
+.TH PIDWAIT 1 "15 Jan 2014" "0.1"
+
+.SH NAME
+pidwait \- wait for process to terminate
+.SH SYNOPSIS
+\fBpidwait\fP [\fIOPTIONS\fP] \fIPID\fP
+.SH DESCRIPTION
+\fBpidwait\fP allows to wait until a process identified by PID is terminated.
+.SH OPTIONS
+.TP
+\fI--help, --usage\fP
+Shows brief help and exits.
+.TP
+\fI-s, --sleep\fP
+Time to sleep (in seconds) between process checks.
+.TP
+\fI-V, --version\fP
+Shows program version and exits.
+.TP
+\fI-v, --verbose\fP
+Turn on extra output.
+.SH COPYRIGHT
+Copyright (c) 2013-2014 Tuomo Hartikainen. This is free software; see the
+sources for copying conditions.
+.SH AUTHOR
+Tuomo Hartikainen <tth@harski.org>.
+.SH SEE ALSO
+\fBwait(1p)\fP
