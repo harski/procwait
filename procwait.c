@@ -13,7 +13,7 @@
 #include "stat.h"
 
 #define PROGNAME "procwait"
-#define VERSION_STR "0.1"
+#define VERSION_STR "0.2"
 
 #define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\
 			"<tuomo.hartikainen@harski.org>.\n"\
