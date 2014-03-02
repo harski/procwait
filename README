@@ -1,27 +1,14 @@
-TOC
-===
-
-- OVERVIEW
-- COMPILING, INSTALLING AND UNINSTALLING
-- DOCUMENTATION
-- BUGS
-- AUTHOR
-- LICENSE
-
-
-OVERVIEW
+PROCWAIT
 ========
 
-procwait is a program that allows to wait for a process identified by PID to
-die. It is analoguous to `wait` but can be used to wait any process to
-terminate, not only its children. When the tracked process terminates, procwait
-terminates too.
-
-procwait is a Linux program written in C.
+Procwait is a Linux program written in C. It allows to wait for a process
+identified by PID to die. It is analoguous to `wait` but can be used to wait
+any process to terminate, not only its children. When the tracked process
+terminates, procwait terminates too.
 
 
 COMPILING, INSTALLING AND UNINSTALLING
-======================================
+--------------------------------------
 
 The intended workflow expects a `make` utility. Edit the Makefile to set the
 compiling parameter to suit your system, it's short and clean. To build the
@@ -37,31 +24,31 @@ issuing
 
 and uninstall with
 
-    $ make unintall
+    $ make uninstall
 
 
 DOCUMENTATION
-=============
+-------------
 
 For additional information about the program usage and options see the procwait
 manpage.
 
 
 BUGS
-====
+----
 
 If you have found a bug in the program, please report it to the author
 directly. See AUTHOR section below for contact information.
 
 
 AUTHOR
-======
+------
 
 Written by Tuomo Hartikainen <tth@harski.org>.
 
 
 LICENSE
-=======
+-------
 
 Licensed under the 2-clause BSD license. See the supplied LICENSE file for
 details.
