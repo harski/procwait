@@ -196,16 +196,16 @@ static void print_help ()
 	printf("Usage: %s [OPTIONS] PID\n\n", PROGNAME);
 	printf("Options:\n");
 
-	printf("-h | --help\n");
-	printf("\tPrint this help.\n\n");
+	printf("-h, --help\n");
+	printf("\tPrint this help.\n");
 
-	printf("-s | --sleep\n");
-	printf("\tSleep time (in seconds) between process checks.\n\n");
+	printf("-s NUM, --sleep NUM\n");
+	printf("\tSleep NUM seconds between process checks.\n");
 
-	printf("-v | --verbose\n");
-	printf("\tBe verbose.\n\n");
+	printf("-v, --verbose\n");
+	printf("\tBe verbose.\n");
 
-	printf("-V | --version\n");
+	printf("-V, --version\n");
 	printf("\tPrint version information.\n");
 }
 
