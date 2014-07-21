@@ -49,7 +49,7 @@ int main (int argc, char **argv)
 	if (retval != E_SUCCESS)
 		goto exit_error;
 
-	if (opt.pid && opt.action == A_DEFAULT) {
+	if (opt.action == A_DEFAULT) {
 		int wait = 1;
 		struct stat proc = { 0, "", 0 };
 
@@ -179,11 +179,11 @@ static int parse_options (int argc, char **argv, struct options *opt)
 	/* check if PID is supplied */
 	if (optind != argc) {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
-		if (*tmpstr == '\0') {
+		if (*tmpstr == '\0' && tmpul != 0) {
 			opt->pid = (unsigned) tmpul;
 			debug_print("PID to follow is %lu\n", tmpul);
 		} else {
-			fprintf(stderr, "Error: Invalid PID '%s'\n", optarg);
+			fprintf(stderr, "Error: Invalid PID '%s'\n", argv[optind]);
 			retval = E_INVAL;
 		}
 	}
