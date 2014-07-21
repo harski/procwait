@@ -1,8 +1,6 @@
 /* Copyright 2013-2014 Tuomo Hartikainen <tuomo.hartikainen@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
-#define _XOPEN_SOURCE
-
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +26,7 @@ struct options {
 };
 
 enum {
-	A_NONE,
+	A_DEFAULT,
 	A_VERSION,
 	A_HELP
 };
@@ -51,7 +49,7 @@ int main (int argc, char **argv)
 	if (retval != E_SUCCESS)
 		goto exit_error;
 
-	if (opt.pid && opt.action == A_NONE) {
+	if (opt.pid && opt.action == A_DEFAULT) {
 		int wait = 1;
 		struct stat proc = { 0, "", 0 };
 
@@ -110,7 +108,7 @@ static int do_secondary_action (const struct options * const opt)
 
 static void load_default_opts (struct options *opt)
 {
-	opt->action = A_NONE;
+	opt->action = A_DEFAULT;
 	opt->pid = 0;
 	opt->sleep = 1;
 	opt->verbose = 0;
