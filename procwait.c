@@ -134,21 +134,20 @@ static int parse_options (int argc, char **argv, struct options *opt)
 	while (!retval) {
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"help",	no_argument,		0, 'H'},
+			{"help",	no_argument,		0, 'h'},
 			{"sleep",	required_argument,	0, 's'},
 			{"verbose",	no_argument,		0, 'v'},
 			{"version",	no_argument,		0, 'V'},
-			{"usage",	no_argument,		0, 'H'},
 			{0,		0,			0,  0 }
 		};
 
-		option = getopt_long(argc, argv, "s:v", long_options,
+		option = getopt_long(argc, argv, "hs:v", long_options,
 					&option_index);
 		if (option == -1)
 			break;
 
 		switch (option) {
-		case 'H':
+		case 'h':
 			opt->action = A_HELP;
 			break;
 		case 's':
@@ -197,7 +196,7 @@ static void print_help ()
 	printf("Usage: %s [OPTIONS] PID\n\n", PROGNAME);
 	printf("Options:\n");
 
-	printf("--help | --usage\n");
+	printf("-h | --help\n");
 	printf("\tPrint this help.\n\n");
 
 	printf("-s | --sleep\n");
