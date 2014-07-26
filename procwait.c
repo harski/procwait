@@ -122,7 +122,6 @@ static void load_default_opts (struct options *opt)
 /* returns 0 on success, error code for errors */
 static int parse_options (int argc, char **argv, struct options *opt)
 {
-	int option;
 	int retval = E_SUCCESS;
 
 	/* temp values for argv validation */
@@ -130,6 +129,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 	unsigned long tmpul;
 
 	while (!retval) {
+		int option;
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"help",	no_argument,		0, 'h'},
@@ -172,6 +172,9 @@ static int parse_options (int argc, char **argv, struct options *opt)
 		}
 	}
 
+	if (retval == E_INVAL || opt->action != A_DEFAULT)
+		goto opt_exit;
+
 	/* check if PID is supplied */
 	if (optind != argc) {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
@@ -184,6 +187,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 		}
 	}
 
+opt_exit:
 	return retval;
 }
 
