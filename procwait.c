@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Tuomo Hartikainen <tuomo.hartikainen@harski.org>.
+/* Copyright 2013-2014 Tuomo Hartikainen <tth@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <getopt.h>
@@ -14,7 +14,7 @@
 #define VERSION_STR "0.2"
 
 #define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\
-			"<tuomo.hartikainen@harski.org>.\n"\
+			"<tth@harski.org>.\n"\
 			"Licensed under the 2-clause BSD license."
 
 
