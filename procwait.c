@@ -129,8 +129,6 @@ static int parse_options (int argc, char **argv, struct options *opt)
 	char *tmpstr;
 	unsigned long tmpul;
 
-	opterr = 0; /* Don't print getopt errors automatically */
-
 	while (!retval) {
 		int option_index = 0;
 		static struct option long_options[] = {
@@ -169,8 +167,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			opt->verbose = 1;
 			break;
 		default:
-			/* TODO: %c is always '?' */
-			fprintf(stderr, "Error: unknown option '%c'\n", option);
+			/* unknown option: quit */
 			retval = E_INVAL;
 		}
 	}
