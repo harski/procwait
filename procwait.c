@@ -36,6 +36,7 @@ static int do_secondary_action (const struct options * const opt);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt);
 static void print_help ();
+static int procwait (const struct options * const opt);
 
 
 int main (int argc, char **argv)
@@ -44,40 +45,13 @@ int main (int argc, char **argv)
 	int retval;
 
 	load_default_opts(&opt);
-	retval = parse_options(argc, argv, &opt);
-
-	if (retval != E_SUCCESS)
+	if ((retval = parse_options(argc, argv, &opt) != E_SUCCESS))
 		goto exit_error;
 
-	if (opt.action == A_DEFAULT) {
-		int wait = 1;
-		struct stat proc = { 0, "", 0 };
-
-		if (!parse_stat_file(opt.pid, &proc)) {
-			printf("Process %u not running\n", opt.pid);
-			retval = 0; /* not a "real" error */
-			goto exit_error;
-		}
-
-		if (opt.verbose)
-			printf("Waiting for PID %u to terminate\n", proc.pid);
-
-		while (wait) {
-			struct stat tmp = { 0, "", 0 };
-			parse_stat_file(proc.pid, &tmp);
-
-			if (stat_eq(&proc, &tmp)) {
-				debug_print("Process running, sleeping %u seconds\n", opt.sleep);
-				sleep(opt.sleep);
-			} else {
-				wait = 0;
-			}
-		}
-	} else {
-		do_secondary_action (&opt);
-	}
-
-	retval = 0;
+	if (opt.action == A_DEFAULT)
+		retval = procwait(&opt);
+	else
+		retval = do_secondary_action(&opt);
 
 exit_error:
 	return retval;
@@ -210,3 +184,32 @@ static void print_help ()
 	printf("\tPrint version information.\n");
 }
 
+
+static int procwait (const struct options * const opt)
+{
+	int retval = E_SUCCESS;
+	int wait = 1;
+	struct stat proc = { 0, "", 0 };
+
+	if (!parse_stat_file(opt->pid, &proc)) {
+		printf("Process %u not running\n", opt->pid);
+		return !E_SUCCESS;
+	}
+
+	if (opt->verbose)
+		printf("Waiting for PID %u to terminate\n", proc.pid);
+
+	while (wait) {
+		struct stat tmp = { 0, "", 0 };
+		parse_stat_file(proc.pid, &tmp);
+
+		if (stat_eq(&proc, &tmp)) {
+			debug_print("Process running, sleeping %u seconds\n", opt->sleep);
+			sleep(opt->sleep);
+		} else {
+			wait = 0;
+		}
+	}
+
+	return retval;
+}
