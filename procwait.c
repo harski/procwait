@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "debug.h"
 #include "procwait.h"
 #include "stat.h"
 
@@ -154,7 +153,6 @@ static int parse_options (int argc, char **argv, struct options *opt)
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
 		if (*tmpstr == '\0' && tmpul != 0) {
 			opt->pid = (unsigned) tmpul;
-			debug_print("PID to follow is %lu\n", tmpul);
 		} else {
 			fprintf(stderr, "Error: Invalid PID '%s'\n", argv[optind]);
 			retval = E_INVAL;
@@ -204,7 +202,6 @@ static int procwait (const struct options * const opt)
 		parse_stat_file(proc.pid, &tmp);
 
 		if (stat_eq(&proc, &tmp)) {
-			debug_print("Process running, sleeping %u seconds\n", opt->sleep);
 			sleep(opt->sleep);
 		} else {
 			wait = 0;

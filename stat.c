@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "debug.h"
 #include "procwait.h"
 #include "stat.h"
 
@@ -39,10 +38,7 @@ static int handle_field (unsigned field, const char *field_buf, struct stat *s)
 					" /proc/PID/stat\n");
 			s->pid = 0;
 			success = E_FAIL;
-			debug_print("field_buf = '%s'\n", field_buf);
-			debug_print("field_buf = '%s'\n", tmp);
 		}
-		debug_print("set pid to %u\n", s->pid);
 		break;
 
 	case STAT_PNAME:
@@ -58,7 +54,6 @@ static int handle_field (unsigned field, const char *field_buf, struct stat *s)
 			s->t0 = 0;
 			success = E_FAIL;
 		}
-		debug_print("set t0 to %u\n", s->t0);
 		break;
 	}
 
