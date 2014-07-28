@@ -2,10 +2,10 @@
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <getopt.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "go.h"
 #include "procwait.h"
 #include "stat.h"
 
@@ -47,6 +47,9 @@ int main (int argc, char **argv)
 	if ((retval = parse_options(argc, argv, &opt) != E_SUCCESS))
 		goto exit_error;
 
+	if (opt.verbose)
+		go_set_lvl(GO_VERBOSE);
+
 	if (opt.action == A_DEFAULT)
 		retval = procwait(&opt);
 	else
@@ -63,8 +66,8 @@ static int do_secondary_action (const struct options * const opt)
 
 	switch (opt->action) {
 	case A_VERSION:
-		printf("%s version %s\n", PROGNAME, VERSION_STR);
-		printf("%s\n", LICENSE_STR);
+		go(GO_ESS, "%s version %s\n", PROGNAME, VERSION_STR);
+		go(GO_ESS, "%s\n", LICENSE_STR);
 		break;
 
 	case A_HELP:
@@ -127,8 +130,8 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			if (*tmpstr == '\0') {
 				opt->sleep = (unsigned) tmpul;
 			} else {
-				fprintf(stderr,
-					"Error: Invalid sleep value '%s'\n",
+				go(GO_ERR,
+					"Invalid sleep value '%s'\n",
 					optarg);
 				retval = E_INVAL;
 			}
@@ -154,7 +157,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 		if (*tmpstr == '\0' && tmpul != 0) {
 			opt->pid = (unsigned) tmpul;
 		} else {
-			fprintf(stderr, "Error: Invalid PID '%s'\n", argv[optind]);
+			go(GO_ERR, "Invalid PID '%s'\n", argv[optind]);
 			retval = E_INVAL;
 		}
 	}
@@ -166,36 +169,34 @@ opt_exit:
 
 static void print_help ()
 {
-	printf("Usage: %s [OPTIONS] PID\n\n", PROGNAME);
-	printf("Options:\n");
+	go(GO_ESS, "Usage: %s [OPTIONS] PID\n\n", PROGNAME);
+	go(GO_ESS, "Options:\n");
 
-	printf("-h, --help\n");
-	printf("\tPrint this help.\n");
+	go(GO_ESS, "-h, --help\n"
+		"\tPrint this help.\n");
 
-	printf("-s NUM, --sleep NUM\n");
-	printf("\tSleep NUM seconds between process checks.\n");
+	go(GO_ESS, "-s NUM, --sleep NUM\n"
+		"\tSleep NUM seconds between process checks.\n");
 
-	printf("-v, --verbose\n");
-	printf("\tBe verbose.\n");
+	go(GO_ESS, "-v, --verbose\n"
+		"\tBe verbose.\n");
 
-	printf("-V, --version\n");
-	printf("\tPrint version information.\n");
+	go(GO_ESS, "-V, --version\n"
+		"\tPrint version information.\n");
 }
 
 
 static int procwait (const struct options * const opt)
 {
-	int retval = E_SUCCESS;
 	int wait = 1;
 	struct stat proc = { 0, "", 0 };
 
 	if (!parse_stat_file(opt->pid, &proc)) {
-		printf("Process %u not running\n", opt->pid);
+		go(GO_MESS, "Process %u not running\n", opt->pid);
 		return !E_SUCCESS;
 	}
 
-	if (opt->verbose)
-		printf("Waiting for PID %u to terminate\n", proc.pid);
+	go(GO_INFO, "Waiting for PID %u to terminate\n", proc.pid);
 
 	while (wait) {
 		struct stat tmp = { 0, "", 0 };
@@ -208,5 +209,5 @@ static int procwait (const struct options * const opt)
 		}
 	}
 
-	return retval;
+	return E_SUCCESS;
 }
