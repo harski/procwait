@@ -30,7 +30,7 @@ enum {
 };
 
 
-static int do_secondary_action (const struct options * const opt);
+static int do_action (const struct options * const opt);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt);
 static void print_help ();
@@ -42,25 +42,26 @@ int main (int argc, char **argv)
 	struct options opt;
 	int retval;
 
+	/* set up runtime options */
 	load_default_opts(&opt);
-	if ((retval = parse_options(argc, argv, &opt) != E_SUCCESS))
-		goto exit_error;
+	retval = parse_options(argc, argv, &opt);
 
-	if (opt.action == A_DEFAULT)
-		retval = procwait(&opt);
-	else
-		retval = do_secondary_action(&opt);
+	/* do the specified action */
+	if (retval == E_SUCCESS)
+		retval = do_action(&opt);
 
-exit_error:
 	return retval;
 }
 
 
-static int do_secondary_action (const struct options * const opt)
+static int do_action (const struct options * const opt)
 {
 	int retval = 0;
 
 	switch (opt->action) {
+	case A_DEFAULT:
+		retval = procwait(opt);
+		break;
 	case A_VERSION:
 		go(GO_ESS, "%s version %s\n", PROGNAME, VERSION_STR);
 		go(GO_ESS, "%s\n", LICENSE_STR);
