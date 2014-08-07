@@ -21,7 +21,6 @@ struct options {
 	int action;
 	unsigned pid;
 	unsigned sleep;
-	int verbose;
 };
 
 enum {
@@ -46,9 +45,6 @@ int main (int argc, char **argv)
 	load_default_opts(&opt);
 	if ((retval = parse_options(argc, argv, &opt) != E_SUCCESS))
 		goto exit_error;
-
-	if (opt.verbose)
-		go_set_lvl(GO_VERBOSE);
 
 	if (opt.action == A_DEFAULT)
 		retval = procwait(&opt);
@@ -87,10 +83,10 @@ static void load_default_opts (struct options *opt)
 	opt->action = A_DEFAULT;
 	opt->pid = 0;
 	opt->sleep = 1;
-	opt->verbose = 0;
+	go_set_lvl(GO_NORMAL);
 
 #if DEBUG
-	opt->verbose = 1;
+	go_set_lvl(GO_VERBOSE);
 #endif
 }
 
@@ -140,7 +136,7 @@ static int parse_options (int argc, char **argv, struct options *opt)
 			opt->action = A_VERSION;
 			break;
 		case 'v':
-			opt->verbose = 1;
+			go_set_lvl(GO_VERBOSE);
 			break;
 		default:
 			/* unknown option: quit */
