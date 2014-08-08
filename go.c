@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "go.h"
@@ -12,31 +13,31 @@ static enum GO_PRINT_LVL go_lvl = GO_NORMAL;
 
 void go (enum GO_LVL lvl, const char *fmt, ...)
 {
-	int print = 0;
+	bool print = false;
 	FILE *os = stdout;
 
 	switch (lvl) {
 	case GO_INFO:
 		if (go_lvl == GO_VERBOSE) {
-			print = 1;
+			print = true;
 		}
 		break;
 
 	case GO_MESS:
 		if (go_lvl <= GO_NORMAL) {
-			print = 1;
+			print = true;
 		}
 		break;
 
 	case GO_ESS:
 		/* always print essential messages */
-		print = 1;
+		print = true;
 		break;
 
 	case GO_WARN:
 		/* don't print warnings if quiet */
 		if (go_lvl > GO_QUIET) {
-			print = 1;
+			print = true;
 			os = stderr;
 
 			/* print a prefix */
@@ -46,7 +47,7 @@ void go (enum GO_LVL lvl, const char *fmt, ...)
 
 	case GO_ERR:
 		/* always print errors */
-		print = 1;
+		print = true;
 		os = stderr;
 
 		/* print a prefix */

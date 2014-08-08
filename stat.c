@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "go.h"
 #include "procwait.h"
 #include "stat.h"
 
@@ -14,8 +15,8 @@
 
 /* Field indexes for file /proc/PID/stat */
 enum {
-	STAT_PID,
-	STAT_PNAME,
+	STAT_PID = 0,
+	STAT_PNAME = 1,
 	STAT_T0 = 21
 };
 
@@ -26,15 +27,15 @@ static int handle_field (unsigned field, const char *field_buf, struct stat *s);
 static int handle_field (unsigned field, const char *field_buf, struct stat *s)
 {
 	int success = E_SUCCESS;
-	char *tmp;
+	char *endptr;
 
 	switch (field) {
-	/* default case is we are not interested on the field in this index,
-	 * so return E_SUCCESS */
 	case STAT_PID:
-		s->pid = strtoul(field_buf, &tmp, 10);
-		if (*tmp != '\0') {
-			fprintf(stderr, "Error: failed to parse PID field from"
+		s->pid = strtoul(field_buf, &endptr, 10);
+		/* if field wasn't completely parsed something is fundamentally
+		 * wrong with the stat file */
+		if (*endptr != '\0') {
+			go(GO_ERR, "Failed to parse PID field from"
 					" /proc/PID/stat\n");
 			s->pid = 0;
 			success = E_FAIL;
@@ -42,18 +43,25 @@ static int handle_field (unsigned field, const char *field_buf, struct stat *s)
 		break;
 
 	case STAT_PNAME:
-		/* both fields are of STAT_COL_LEN */
+		/* just copy the process name. both fields are STAT_COL_LEN */
 		strcpy(s->pname, field_buf);
 		break;
 
 	case STAT_T0:
-		s->t0 = strtoul(field_buf, &tmp, 10);
-		if (*tmp != '\0') {
-			fprintf(stderr, "Error: failed to parse process start"
+		s->t0 = strtoul(field_buf, &endptr, 10);
+		/* if field wasn't completely parsed something is fundamentally
+		 * wrong with the stat file */
+		if (*endptr != '\0') {
+			go(GO_ERR, "Error: failed to parse process start"
 					" time from /proc/PID/stat\n");
 			s->t0 = 0;
 			success = E_FAIL;
 		}
+		break;
+
+	default:
+		/* default case is we are not interested on the field in this
+		 * index, so return E_SUCCESS */
 		break;
 	}
 
@@ -66,28 +74,29 @@ int parse_stat_file (unsigned pid, struct stat *s)
 	FILE *file;
 	char filename[FILENAME_BUF_LEN];
 	char field_buf[STAT_COL_LEN];
-	unsigned field = 0;
-	int i, done;
+	unsigned field;
+	bool done;
+	int i;
 	int retval = E_SUCCESS;
 
 	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
 	file = fopen(filename, "r");
 
-	/* file could not be read: does it exist? */
 	if (file == NULL) {
-		int err = errno;
-		if (err != ENOENT) {
-			error(0, err, "parse_stat_file()");
+		/* check if error is file not existing (which is ok, the
+		 * process has terminated) or if some other error happened */
+		if (errno != ENOENT) {
+			error(0, errno, "parse_stat_file()");
 		}
 		goto pst_err;
 	}
 
 	/* loop the fields */
-	for (i = 0, done = 0; !done; ++i) {
+	for (i = 0, done = false, field = 0; !done; ++i) {
 		int ch = fgetc(file);
 
 		if (ch == EOF)
-			done = 1;
+			done = true;
 
 		if (ch == ' ' || ch == EOF) {
 			field_buf[i] = '\0';
@@ -116,22 +125,21 @@ pst_err:
 }
 
 
-int stat_eq (const struct stat * const a, const struct stat * const b)
+bool stat_eq (const struct stat * const a, const struct stat * const b)
 {
 	if (a->pid == b->pid && a->t0 == b->t0)
-		return 1;
+		return true;
 	else
-		return 0;
+		return false;
 }
 
 
-int validate_stat_file (const struct stat * const s)
+bool validate_stat_file (const struct stat * const s)
 {
-	int valid = 1;
+	bool valid = true;
 
 	if (s->pid == 0 || s->t0 == 0)
-		valid = 0;
+		valid = false;
 
 	return valid;
 }
-
