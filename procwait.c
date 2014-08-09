@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "error.h"
 #include "go.h"
-#include "procwait.h"
 #include "stat.h"
 
 #define PROGNAME "procwait"

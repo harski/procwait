@@ -12,10 +12,10 @@ $(target): $(objs)
 go.o: go.c go.h
 	$(cc) -c $(cflags) $< -o $@
 
-procwait.o: procwait.c procwait.h
+procwait.o: procwait.c error.h
 	$(cc) -c $(cflags) $< -o $@
 
-stat.o: stat.c stat.h
+stat.o: stat.c stat.h error.h
 	$(cc) -c $(cflags) $< -o $@
 
 clean:

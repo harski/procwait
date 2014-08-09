@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error.h"
 #include "go.h"
-#include "procwait.h"
 #include "stat.h"
 
 #define FILENAME_BUF_LEN 32
