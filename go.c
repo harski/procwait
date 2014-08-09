@@ -1,7 +1,6 @@
 /* Copyright 2014 Tuomo Hartikainen <tth@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
-#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -53,10 +52,6 @@ void go (enum GO_LVL lvl, const char *fmt, ...)
 		/* print a prefix */
 		fprintf(stderr, "Error: ");
 		break;
-
-	default:
-		/* this should NEVER happen */
-		assert(0);
 	}
 
 	if (print) {
