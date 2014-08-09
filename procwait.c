@@ -11,7 +11,6 @@
 #include "stat.h"
 
 #define PROGNAME "procwait"
-#define VERSION_STR "0.2"
 
 #define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\
 			"<tth@harski.org>.\n"\
@@ -66,7 +65,7 @@ static int do_action (const struct options * const opt)
 		break;
 
 	case A_VERSION:
-		go(GO_ESS, "%s version %s\n", PROGNAME, VERSION_STR);
+		go(GO_ESS, "%s version %s\n", PROGNAME, VERSION);
 		go(GO_ESS, "%s\n", LICENSE_STR);
 		break;
 

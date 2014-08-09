@@ -1,4 +1,4 @@
-.TH PROCWAIT 1 "15 Jan 2014" "0.2"
+.TH PROCWAIT 1 "VERSION"
 
 .SH NAME
 procwait \- wait for process to terminate
