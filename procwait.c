@@ -12,6 +12,10 @@
 
 #define PROGNAME "procwait"
 
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
+
 #define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\
 			"<tth@harski.org>.\n"\
 			"Licensed under the 2-clause BSD license."
