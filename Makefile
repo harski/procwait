@@ -1,7 +1,7 @@
 include config.mk
 
 TARGET=procwait
-OBJS=go.o procwait.o stat.o
+OBJS=go.o proc.o procwait.o
 MAN=$(TARGET).1
 VFLAG=-DVERSION=\"$(VERSION)\"
 
@@ -13,11 +13,11 @@ $(TARGET): $(OBJS)
 go.o: go.c go.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+proc.o: proc.c proc.h error.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 procwait.o: procwait.c error.h
 	$(CC) -c $(CFLAGS) $(VFLAG) $< -o $@
-
-stat.o: stat.c stat.h error.h
-	$(CC) -c $(CFLAGS) $< -o $@
 
 man: $(MAN)
 

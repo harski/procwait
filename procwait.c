@@ -8,7 +8,7 @@
 
 #include "error.h"
 #include "go.h"
-#include "stat.h"
+#include "proc.h"
 
 #define PROGNAME "procwait"
 
@@ -197,7 +197,7 @@ static int procwait (const struct options * const opt)
 	/* initial stat struct that is compared against subsequent reads to
 	 * determine if the current process with specified PID is still the
 	 * same we are waiting to terminate. */
-	struct stat proc = { 0, "", 0 };
+	struct proc proc = { 0, "", 0 };
 
 	/* check that process is running to begin with */
 	if (!parse_stat_file(opt->pid, &proc)) {
@@ -211,11 +211,11 @@ static int procwait (const struct options * const opt)
 		sleep(opt->sleep);
 
 		/* read current stat file of PID */
-		struct stat tmp = { 0, "", 0 };
+		struct proc tmp = { 0, "", 0 };
 		parse_stat_file(proc.pid, &tmp);
 
 		/* check that the process is still the same */
-		if (!stat_eq(&proc, &tmp))
+		if (!proc_eq(&proc, &tmp))
 			wait = false;
 
 	} while (wait);
