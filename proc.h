@@ -6,6 +6,8 @@
 
 #include <stdbool.h>
 
+#include "queue.h"
+
 #define STAT_COL_LEN 32
 
 /* represents the process PID. Content is parsed from file /proc/PID/stat */
@@ -13,7 +15,10 @@ struct proc {
 	unsigned pid;
 	char pname[STAT_COL_LEN];
 	unsigned t0;
+	SLIST_ENTRY(proc) procs;
 };
+
+SLIST_HEAD(proclist, proc);
 
 int parse_stat_file (unsigned pid, struct proc *p);
 bool proc_eq (const struct proc * const p1, const struct proc * const p2);

@@ -3,9 +3,10 @@
 .SH NAME
 procwait \- wait for process to terminate
 .SH SYNOPSIS
-\fBprocwait\fP [\fIOPTIONS\fP] \fIPID\fP
+\fBprocwait\fP [\fIOPTIONS\fP] \fIPID\fP...
 .SH DESCRIPTION
-\fBprocwait\fP allows to wait until a process identified by PID is terminated.
+\fBprocwait\fP allows to wait until a process or (processes) identified by PID
+is terminated.
 .SH OPTIONS
 .TP
 \fB-h\fP, \fB--help\fP

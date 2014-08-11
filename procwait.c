@@ -2,13 +2,13 @@
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <getopt.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "error.h"
 #include "go.h"
 #include "proc.h"
+#include "queue.h"
 
 #define PROGNAME "procwait"
 
@@ -23,7 +23,6 @@
 
 struct options {
 	int action;	/* selected action */
-	unsigned pid;	/* pid to wait for termimation */
 	unsigned sleep; /* seconds to sleep between termination polls */
 };
 
@@ -34,38 +33,45 @@ enum {
 	A_HELP
 };
 
-
-static int do_action (const struct options * const opt);
+static int do_action (const struct options * const opt,
+		      struct proclist * proclist);
 static void load_default_opts (struct options *opt);
-static int parse_options (int argc, char **argv, struct options *opt);
+static int parse_options (int argc, char **argv, struct options *opt,
+			  struct proclist * proclist);
 static void print_help ();
-static int procwait (const struct options * const opt);
+static int procwait (const struct options * const opt,
+		     struct proclist *proclist);
 
 
 int main (int argc, char **argv)
 {
 	struct options opt;
 	int retval;
+	struct proclist proclist;
+
+	/* init proclist */
+	SLIST_INIT(&proclist);
 
 	/* set up runtime options */
 	load_default_opts(&opt);
-	retval = parse_options(argc, argv, &opt);
+	retval = parse_options(argc, argv, &opt, &proclist);
 
 	/* do the specified action */
 	if (retval == E_SUCCESS)
-		retval = do_action(&opt);
+		retval = do_action(&opt, &proclist);
 
 	return retval;
 }
 
 
-static int do_action (const struct options * const opt)
+static int do_action (const struct options * const opt,
+		      struct proclist *proclist)
 {
 	int retval = E_SUCCESS;
 
 	switch (opt->action) {
 	case A_PROCWAIT:
-		retval = procwait(opt);
+		retval = procwait(opt, proclist);
 		break;
 
 	case A_VERSION:
@@ -88,7 +94,6 @@ static int do_action (const struct options * const opt)
 static void load_default_opts (struct options *opt)
 {
 	opt->action = A_PROCWAIT;
-	opt->pid = 0;
 	opt->sleep = 1;
 	go_set_lvl(GO_NORMAL);
 
@@ -99,7 +104,8 @@ static void load_default_opts (struct options *opt)
 
 
 /* returns E_SUCCESS on success, error code for errors */
-static int parse_options (int argc, char **argv, struct options *opt)
+static int parse_options (int argc, char **argv, struct options *opt,
+			  struct proclist *proclist)
 {
 	int retval = E_SUCCESS;
 
@@ -157,14 +163,18 @@ static int parse_options (int argc, char **argv, struct options *opt)
 		return retval;
 
 	/* check if PID is supplied */
-	if (optind != argc) {
+	while (optind != argc) {
 		tmpul = strtoul(argv[optind], &tmpstr, 10);
 		if (*tmpstr == '\0' && tmpul != 0) {
-			opt->pid = (unsigned) tmpul;
+			/* add PID to the list */
+			struct proc * proc = malloc(sizeof(struct proc));
+			proc->pid = (unsigned) tmpul;
+			SLIST_INSERT_HEAD(proclist, proc, procs);
 		} else {
 			go(GO_ERR, "Invalid PID '%s'\n", argv[optind]);
 			retval = E_INVAL;
 		}
+		++optind;
 	}
 
 	return retval;
@@ -190,35 +200,44 @@ static void print_help ()
 }
 
 
-static int procwait (const struct options * const opt)
+static int procwait (const struct options * const opt,
+		     struct proclist *proclist)
 {
-	bool wait = true;
+	struct proc * proc, * tmp_proc;
 
-	/* initial stat struct that is compared against subsequent reads to
-	 * determine if the current process with specified PID is still the
-	 * same we are waiting to terminate. */
-	struct proc proc = { 0, "", 0 };
-
-	/* check that process is running to begin with */
-	if (!parse_stat_file(opt->pid, &proc)) {
-		go(GO_MESS, "Process %u not running\n", opt->pid);
-		return !E_SUCCESS;
+	/* check that process is running and get initial info on it */
+	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
+		if (parse_stat_file(proc->pid, proc)) {
+			go(GO_INFO,
+				"Waiting for PID %u %s to terminate\n",
+				proc->pid, proc->pname);
+		} else {
+			go(GO_MESS, "Process %u not running\n", proc->pid);
+			SLIST_REMOVE(proclist, proc, proc, procs);
+			free(proc);
+		}
 	}
 
-	go(GO_INFO, "Waiting for PID %u to terminate\n", proc.pid);
-
+	/* main wait loop */
 	do {
 		sleep(opt->sleep);
 
-		/* read current stat file of PID */
-		struct proc tmp = { 0, "", 0 };
-		parse_stat_file(proc.pid, &tmp);
+		SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
+			/* read current stat file of PID */
+			struct proc tmp = { 0, "", 0, {NULL}};
+			parse_stat_file(proc->pid, &tmp);
 
-		/* check that the process is still the same */
-		if (!proc_eq(&proc, &tmp))
-			wait = false;
-
-	} while (wait);
+			/* check that the process is still the same */
+			if (!proc_eq(proc, &tmp)) {
+				//wait = false;
+				SLIST_REMOVE(proclist,
+						proc, proc, procs);
+				go(GO_INFO, "Process %u %s terminated\n",
+					proc->pid, proc->pname);
+				free(proc);
+			}
+		}
+	} while (!SLIST_EMPTY(proclist));
 
 	return E_SUCCESS;
 }
