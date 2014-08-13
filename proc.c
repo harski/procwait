@@ -17,7 +17,8 @@
 enum {
 	STAT_PID = 0,
 	STAT_PNAME = 1,
-	STAT_T0 = 21
+	STAT_T0 = 21,
+	STAT_FIELDS
 };
 
 
@@ -73,11 +74,6 @@ int parse_stat_file (unsigned pid, struct proc *p)
 {
 	FILE *file;
 	char filename[FILENAME_BUF_LEN];
-	char field_buf[STAT_COL_LEN];
-	unsigned field;
-	bool done;
-	int i;
-	int retval = E_SUCCESS;
 
 	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
 	file = fopen(filename, "r");
@@ -85,46 +81,40 @@ int parse_stat_file (unsigned pid, struct proc *p)
 	if (file == NULL) {
 		/* check if error is file not existing (which is ok, the
 		 * process has terminated) or if some other error happened */
-		if (errno != ENOENT) {
+		if (errno != ENOENT)
 			error(0, errno, "parse_proc()");
-		}
-		goto pst_err;
+		return E_FAIL;
 	}
 
 	/* loop the fields */
-	for (i = 0, done = false, field = 0; !done; ++i) {
-		int ch = fgetc(file);
+	for (unsigned field = 0; field < STAT_FIELDS; ++field) {
+		char field_buf[STAT_COL_LEN];
 
-		if (ch == EOF)
-			done = true;
+		/* get next field */
+		for (int i = 0; ; ++i) {
+			int ch = fgetc(file);
 
-		if (ch == ' ' || ch == EOF) {
-			field_buf[i] = '\0';
-
-			/* if handling a required field fails, bail out */
-			retval = handle_field(field, field_buf, p);
-			if (retval !=  E_SUCCESS)
-				goto pst_close_err;
-
-			/* now start buffering the next field */
-			i = 0;
-			++field;
+			/* if ch is field separator terminate str and stop */
+			if (ch == ' ' ||  ch == EOF) {
+				field_buf[i] = '\0';
+				break;
+			} else {
+				field_buf[i] = (char) ch;
+			}
 		}
-		field_buf[i] = (char) ch;
+
+		/* if handling a required field fails, bail out */
+		if (handle_field(field, field_buf, p) !=  E_SUCCESS)
+			break;
 	}
 
 	fclose(file);
 
-	return validate_proc(p);
-
-pst_close_err:
-	fclose(file);
-
-pst_err:
-	return 0;
+	return validate_proc(p) ? E_SUCCESS : E_FAIL;
 }
 
 
+/* if PID or start time are left uninialized return false */
 bool proc_eq (const struct proc * const p1, const struct proc * const p2)
 {
 	if (p1->pid == p2->pid && p1->t0 == p2->t0)
