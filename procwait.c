@@ -125,7 +125,7 @@ static int parse_options (int argc, char **argv, struct options *opt,
 		};
 
 		option = getopt_long(argc, argv, "hs:v", long_options,
-					&option_index);
+				     &option_index);
 		if (option == -1)
 			break;
 
@@ -140,8 +140,8 @@ static int parse_options (int argc, char **argv, struct options *opt,
 				opt->sleep = (unsigned) tmpul;
 			} else {
 				go(GO_ERR,
-					"Invalid sleep value '%s'\n",
-					optarg);
+				   "Invalid sleep value '%s'\n",
+				   optarg);
 				retval = E_INVAL;
 			}
 			break;
@@ -187,16 +187,16 @@ static void print_help ()
 	go(GO_ESS, "Options:\n");
 
 	go(GO_ESS, "-h, --help\n"
-		"\tPrint this help.\n");
+		   "\tPrint this help.\n");
 
 	go(GO_ESS, "-s NUM, --sleep NUM\n"
-		"\tSleep NUM seconds between process checks.\n");
+		   "\tSleep NUM seconds between process checks.\n");
 
 	go(GO_ESS, "-v, --verbose\n"
-		"\tBe verbose.\n");
+		   "\tBe verbose.\n");
 
 	go(GO_ESS, "-V, --version\n"
-		"\tPrint version information.\n");
+		   "\tPrint version information.\n");
 }
 
 
@@ -215,8 +215,8 @@ static int procwait (const struct options * const opt,
 	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 		if (parse_stat_file(proc->pid, proc) == E_SUCCESS) {
 			go(GO_INFO,
-				"Waiting for PID %u %s to terminate\n",
-				proc->pid, proc->pname);
+			   "Waiting for PID %u %s to terminate\n",
+			   proc->pid, proc->pname);
 		} else {
 			go(GO_MESS, "Process %u not running\n", proc->pid);
 			SLIST_REMOVE(proclist, proc, proc, procs);
@@ -236,9 +236,9 @@ static int procwait (const struct options * const opt,
 			/* check that the process is still the same */
 			if (!proc_eq(proc, &tmp)) {
 				SLIST_REMOVE(proclist,
-						proc, proc, procs);
+					     proc, proc, procs);
 				go(GO_INFO, "Process %u %s terminated\n",
-					proc->pid, proc->pname);
+				   proc->pid, proc->pname);
 				free(proc);
 			}
 		}

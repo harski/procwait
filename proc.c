@@ -37,7 +37,7 @@ static int handle_field (unsigned field, const char *field_buf, struct proc *p)
 		 * wrong with the stat file */
 		if (*endptr != '\0') {
 			go(GO_ERR, "Failed to parse PID field from"
-					" /proc/PID/stat\n");
+				   " /proc/PID/stat\n");
 			p->pid = 0;
 			success = E_FAIL;
 		}
@@ -53,8 +53,8 @@ static int handle_field (unsigned field, const char *field_buf, struct proc *p)
 		/* if field wasn't completely parsed something is fundamentally
 		 * wrong with the stat file */
 		if (*endptr != '\0') {
-			go(GO_ERR, "Error: failed to parse process start"
-					" time from /proc/PID/stat\n");
+			go(GO_ERR, "Error: failed to parse process start "
+				   "time from /proc/PID/stat\n");
 			p->t0 = 0;
 			success = E_FAIL;
 		}
