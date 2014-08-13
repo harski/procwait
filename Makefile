@@ -13,10 +13,10 @@ $(TARGET): $(OBJS)
 go.o: go.c go.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-proc.o: proc.c proc.h error.h
+proc.o: proc.c proc.h error.h go.h queue.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-procwait.o: procwait.c error.h
+procwait.o: procwait.c error.h proc.h queue.h
 	$(CC) -c $(CFLAGS) $(VFLAG) $< -o $@
 
 man: $(MAN)
