@@ -205,6 +205,12 @@ static int procwait (const struct options * const opt,
 {
 	struct proc * proc, * tmp_proc;
 
+	/* if list is empty, print help and error out */
+	if (SLIST_EMPTY(proclist)) {
+		print_help();
+		return E_FAIL;
+	}
+
 	/* check that process is running and get initial info on it */
 	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 		if (parse_stat_file(proc->pid, proc) == E_SUCCESS) {
@@ -219,7 +225,7 @@ static int procwait (const struct options * const opt,
 	}
 
 	/* main wait loop */
-	do {
+	while (!SLIST_EMPTY(proclist)) {
 		sleep(opt->sleep);
 
 		SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
@@ -229,7 +235,6 @@ static int procwait (const struct options * const opt,
 
 			/* check that the process is still the same */
 			if (!proc_eq(proc, &tmp)) {
-				//wait = false;
 				SLIST_REMOVE(proclist,
 						proc, proc, procs);
 				go(GO_INFO, "Process %u %s terminated\n",
@@ -237,7 +242,7 @@ static int procwait (const struct options * const opt,
 				free(proc);
 			}
 		}
-	} while (!SLIST_EMPTY(proclist));
+	}
 
 	return E_SUCCESS;
 }
