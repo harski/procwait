@@ -45,7 +45,7 @@ static int handle_field (unsigned field, const char *field_buf, struct proc *p)
 
 	case STAT_PNAME:
 		/* just copy the process name. both fields are STAT_COL_LEN */
-		strcpy(p->pname, field_buf);
+		strcpy(p->name, field_buf);
 		break;
 
 	case STAT_T0:

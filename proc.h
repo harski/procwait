@@ -13,7 +13,7 @@
 /* represents the process PID. Content is parsed from file /proc/PID/stat */
 struct proc {
 	unsigned pid;
-	char pname[STAT_COL_LEN];
+	char name[STAT_COL_LEN];
 	unsigned t0;
 	SLIST_ENTRY(proc) procs;
 };
