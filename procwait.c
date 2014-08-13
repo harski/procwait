@@ -183,7 +183,7 @@ static int parse_options (int argc, char **argv, struct options *opt,
 
 static void print_help ()
 {
-	go(GO_ESS, "Usage: %s [OPTIONS] PID\n\n", PROGNAME);
+	go(GO_ESS, "Usage: %s [OPTIONS] PID...\n\n", PROGNAME);
 	go(GO_ESS, "Options:\n");
 
 	go(GO_ESS, "-h, --help\n"
