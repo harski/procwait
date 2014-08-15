@@ -2,7 +2,10 @@
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <getopt.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "error.h"
@@ -23,7 +26,7 @@
 
 struct options {
 	int action;	/* selected action */
-	unsigned sleep; /* seconds to sleep between termination polls */
+	struct timespec sleep;
 };
 
 /* available actions */
@@ -35,9 +38,11 @@ enum {
 
 static int do_action (const struct options * const opt,
 		      struct proclist * proclist);
+static inline bool ends_in (const char * const str, const char * const end);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt,
 			  struct proclist * proclist);
+static int parse_sleep_time (const char *timestr, struct timespec *ts);
 static void print_help ();
 static int procwait (const struct options * const opt,
 		     struct proclist *proclist);
@@ -91,10 +96,35 @@ static int do_action (const struct options * const opt,
 }
 
 
+static inline bool ends_in (const char * const str, const char * const end)
+{
+	bool result = true;
+	size_t str_len = strlen(str);
+	size_t end_len = strlen(end);
+
+	if (str_len >= end_len) {
+		int i = str_len - end_len;
+		int counter = 0;
+
+		while (str[i] != '\0') {
+			if (str[i++] != end[counter++]) {
+				result = false;
+				break;
+			}
+		}
+	} else {
+		result = false;
+	}
+
+	return result;
+}
+
+
 static void load_default_opts (struct options *opt)
 {
 	opt->action = A_PROCWAIT;
-	opt->sleep = 1;
+	opt->sleep.tv_sec = 1;
+	opt->sleep.tv_nsec = 0;
 	go_set_lvl(GO_NORMAL);
 
 #if DEBUG
@@ -134,11 +164,7 @@ static int parse_options (int argc, char **argv, struct options *opt,
 			opt->action = A_HELP;
 			break;
 		case 's':
-			/* validate ctmp to sleep_int */
-			tmpul = strtoul(optarg, &tmpstr, 10);
-			if (*tmpstr == '\0') {
-				opt->sleep = (unsigned) tmpul;
-			} else {
+			if (parse_sleep_time(optarg, &opt->sleep) == E_INVAL) {
 				go(GO_ERR,
 				   "Invalid sleep value '%s'\n",
 				   optarg);
@@ -181,6 +207,41 @@ static int parse_options (int argc, char **argv, struct options *opt,
 }
 
 
+static int parse_sleep_time (const char *timestr, struct timespec *ts)
+{
+	bool is_ms = false;
+	unsigned long tmpul;
+	char *tmpstr;
+	int len = strlen(timestr);
+	char str[len+1];
+
+	strcpy(str, timestr);
+
+	/* check if time is in ms */
+	if (ends_in(str, "ms")) {
+		str[len-2] = '\0';
+		is_ms = true;
+	}
+
+	/* validate ctmp to sleep_int */
+	tmpul = strtoul(str, &tmpstr, 10);
+	if (*tmpstr == '\0') {
+		if (is_ms) {
+			/* get full seconds */
+			ts->tv_sec = tmpul/1000;
+			/* get milliseconds */
+			ts->tv_nsec = 1000000 * (tmpul % 1000);
+		} else {
+			ts->tv_sec = (time_t) tmpul;
+		}
+	} else {
+		return E_INVAL;
+	}
+
+	return E_SUCCESS;
+}
+
+
 static void print_help ()
 {
 	go(GO_ESS, "Usage: %s [OPTIONS] PID...\n\n", PROGNAME);
@@ -189,8 +250,9 @@ static void print_help ()
 	go(GO_ESS, "-h, --help\n"
 		   "\tPrint this help.\n");
 
-	go(GO_ESS, "-s NUM, --sleep NUM\n"
-		   "\tSleep NUM seconds between process checks.\n");
+	go(GO_ESS, "-s NUM[ms], --sleep NUM[ms]\n"
+		   "\tSleep NUM seconds (milliseconds) between"
+		   "process checks.\n");
 
 	go(GO_ESS, "-v, --verbose\n"
 		   "\tBe verbose.\n");
@@ -226,7 +288,7 @@ static int procwait (const struct options * const opt,
 
 	/* main wait loop */
 	while (!SLIST_EMPTY(proclist)) {
-		sleep(opt->sleep);
+		nanosleep(&opt->sleep, NULL);
 
 		SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 			/* read current stat file of PID */

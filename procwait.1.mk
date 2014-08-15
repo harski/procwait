@@ -12,8 +12,8 @@ is terminated.
 \fB-h\fP, \fB--help\fP
 Shows brief help and exits.
 .TP
-\fB-s\fP \fINUM\fP, \fB--sleep\fP \fINUM\fP
-Time to sleep (in seconds) between process checks.
+\fB-s\fP \fINUM\fP[ms], \fB--sleep\fP \fINUM\fP[ms]
+Seconds (milliseconds) to sleep between process checks.
 .TP
 \fB-V\fP, \fB--version\fP
 Shows program version and exits.
