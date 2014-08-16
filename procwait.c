@@ -38,7 +38,7 @@ enum {
 
 static int do_action (const struct options * const opt,
 		      struct proclist * proclist);
-static inline bool ends_in (const char * const str, const char * const end);
+static inline bool str_ends_in (const char * const str, const char * const end);
 static void load_default_opts (struct options *opt);
 static int parse_options (int argc, char **argv, struct options *opt,
 			  struct proclist * proclist);
@@ -96,7 +96,7 @@ static int do_action (const struct options * const opt,
 }
 
 
-static inline bool ends_in (const char * const str, const char * const end)
+static inline bool str_ends_in (const char * const str, const char * const end)
 {
 	bool result = true;
 	size_t str_len = strlen(str);
@@ -218,7 +218,7 @@ static int parse_sleep_time (const char *timestr, struct timespec *ts)
 	strcpy(str, timestr);
 
 	/* check if time is in ms */
-	if (ends_in(str, "ms")) {
+	if (str_ends_in(str, "ms")) {
 		str[len-2] = '\0';
 		is_ms = true;
 	}
@@ -293,10 +293,11 @@ static int procwait (const struct options * const opt,
 		SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 			/* read current stat file of PID */
 			struct proc tmp = { 0, "", 0, {NULL}};
-			parse_stat_file(proc->pid, &tmp);
 
-			/* check that the process is still the same */
-			if (!proc_eq(proc, &tmp)) {
+			/* check that stat could be read and the  process is
+			 * still the same */
+			if (parse_stat_file(proc->pid, &tmp) ||
+			    !proc_eq(proc, &tmp)) {
 				SLIST_REMOVE(proclist,
 					     proc, proc, procs);
 				go(GO_INFO, "Process %u %s terminated\n",
