@@ -16,7 +16,7 @@
 #define PROGNAME "procwait"
 
 #ifndef VERSION
-#define VERSION "unknown"
+#define VERSION "unknown (" __DATE__ ")"
 #endif
 
 #define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\

@@ -3,7 +3,10 @@ include config.mk
 TARGET=procwait
 OBJS=go.o proc.o procwait.o
 MAN=$(TARGET).1
+
+ifdef VERSION
 VFLAG=-DVERSION=\"$(VERSION)\"
+endif
 
 all: $(TARGET) $(MAN)
 
