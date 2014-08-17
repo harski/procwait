@@ -1,3 +1,4 @@
 *.o
 procwait
+procwait.1
 tags
