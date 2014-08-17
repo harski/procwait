@@ -21,7 +21,7 @@ enum GO_PRINT_LVL {
 
 
 /* output messages if GO_LVL is high enough compared to current GO_PRINT_LVL */
-void go (enum GO_LVL lvl, const char *fmt, ...);
+void go (const enum GO_LVL lvl, const char *fmt, ...);
 
 /* set GO_PRINT_LVL */
-void go_set_lvl (enum GO_PRINT_LVL lvl);
+void go_set_lvl (const enum GO_PRINT_LVL lvl);

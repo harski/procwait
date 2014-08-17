@@ -10,7 +10,7 @@
 static enum GO_PRINT_LVL go_lvl = GO_NORMAL;
 
 
-void go (enum GO_LVL lvl, const char *fmt, ...)
+void go (const enum GO_LVL lvl, const char *fmt, ...)
 {
 	bool print = false;
 	FILE *os = stdout;
@@ -63,7 +63,7 @@ void go (enum GO_LVL lvl, const char *fmt, ...)
 }
 
 
-void go_set_lvl (enum GO_PRINT_LVL lvl)
+void go_set_lvl (const enum GO_PRINT_LVL lvl)
 {
 	go_lvl = lvl;
 }

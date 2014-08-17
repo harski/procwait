@@ -22,10 +22,12 @@ enum {
 };
 
 
-static int handle_field (unsigned field, const char *field_buf, struct proc *p);
+static int handle_field (const unsigned field, const char * const field_buf,
+			 struct proc * restrict p);
 
 
-static int handle_field (unsigned field, const char *field_buf, struct proc *p)
+static int handle_field (const unsigned field, const char * const field_buf,
+			 struct proc * restrict p)
 {
 	int success = E_SUCCESS;
 	char *endptr;
@@ -70,7 +72,7 @@ static int handle_field (unsigned field, const char *field_buf, struct proc *p)
 }
 
 
-int parse_stat_file (unsigned pid, struct proc *p)
+int parse_stat_file (const unsigned pid, struct proc * restrict p)
 {
 	FILE *file;
 	char filename[FILENAME_BUF_LEN];

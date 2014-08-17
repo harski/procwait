@@ -37,15 +37,16 @@ enum {
 };
 
 static int do_action (const struct options * const opt,
-		      struct proclist * proclist);
+		      struct proclist * restrict proclist);
 static inline bool str_ends_in (const char * const str, const char * const end);
-static void load_default_opts (struct options *opt);
-static int parse_options (int argc, char **argv, struct options *opt,
-			  struct proclist * proclist);
-static int parse_sleep_time (const char *timestr, struct timespec *ts);
+static void load_default_opts (struct options * restrict opt);
+static int parse_options (int argc, char **argv, struct options * restrict opt,
+			  struct proclist * restrict proclist);
+static int parse_sleep_time (const char * const timestr,
+			     struct timespec * restrict ts);
 static void print_help ();
 static int procwait (const struct options * const opt,
-		     struct proclist *proclist);
+		     struct proclist * restrict proclist);
 
 
 int main (int argc, char **argv)
@@ -70,7 +71,7 @@ int main (int argc, char **argv)
 
 
 static int do_action (const struct options * const opt,
-		      struct proclist *proclist)
+		      struct proclist * restrict proclist)
 {
 	int retval = E_SUCCESS;
 
@@ -120,7 +121,7 @@ static inline bool str_ends_in (const char * const str, const char * const end)
 }
 
 
-static void load_default_opts (struct options *opt)
+static void load_default_opts (struct options * restrict opt)
 {
 	opt->action = A_PROCWAIT;
 	opt->sleep.tv_sec = 1;
@@ -134,8 +135,8 @@ static void load_default_opts (struct options *opt)
 
 
 /* returns E_SUCCESS on success, error code for errors */
-static int parse_options (int argc, char **argv, struct options *opt,
-			  struct proclist *proclist)
+static int parse_options (int argc, char **argv, struct options * restrict opt,
+			  struct proclist * restrict proclist)
 {
 	int retval = E_SUCCESS;
 
@@ -207,7 +208,8 @@ static int parse_options (int argc, char **argv, struct options *opt,
 }
 
 
-static int parse_sleep_time (const char *timestr, struct timespec *ts)
+static int parse_sleep_time (const char * const timestr,
+			     struct timespec * restrict ts)
 {
 	bool is_ms = false;
 	unsigned long tmpul;
@@ -263,7 +265,7 @@ static void print_help ()
 
 
 static int procwait (const struct options * const opt,
-		     struct proclist *proclist)
+		     struct proclist * restrict proclist)
 {
 	struct proc * proc, * tmp_proc;
 
