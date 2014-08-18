@@ -38,7 +38,6 @@ enum {
 
 static int do_action (const struct options * const opt,
 		      struct proclist * restrict proclist);
-static inline bool str_ends_in (const char * const str, const char * const end);
 static void load_default_opts (struct options * restrict opt);
 static int parse_options (int argc, char **argv, struct options * restrict opt,
 			  struct proclist * restrict proclist);
@@ -94,30 +93,6 @@ static int do_action (const struct options * const opt,
 	}
 
 	return retval;
-}
-
-
-static inline bool str_ends_in (const char * const str, const char * const end)
-{
-	bool result = true;
-	size_t str_len = strlen(str);
-	size_t end_len = strlen(end);
-
-	if (str_len >= end_len) {
-		int i = str_len - end_len;
-		int counter = 0;
-
-		while (str[i] != '\0') {
-			if (str[i++] != end[counter++]) {
-				result = false;
-				break;
-			}
-		}
-	} else {
-		result = false;
-	}
-
-	return result;
 }
 
 
@@ -208,34 +183,23 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 }
 
 
-static int parse_sleep_time (const char * const timestr,
+static int parse_sleep_time (const char * const str,
 			     struct timespec * restrict ts)
 {
-	bool is_ms = false;
 	unsigned long tmpul;
 	char *tmpstr;
-	int len = strlen(timestr);
-	char str[len+1];
 
-	strcpy(str, timestr);
-
-	/* check if time is in ms */
-	if (str_ends_in(str, "ms")) {
-		str[len-2] = '\0';
-		is_ms = true;
-	}
-
-	/* validate ctmp to sleep_int */
 	tmpul = strtoul(str, &tmpstr, 10);
-	if (*tmpstr == '\0') {
-		if (is_ms) {
-			/* get full seconds */
-			ts->tv_sec = tmpul/1000;
-			/* get milliseconds */
-			ts->tv_nsec = 1000000 * (tmpul % 1000);
-		} else {
-			ts->tv_sec = (time_t) tmpul;
-		}
+
+	/* if valid ul (sleep time in seconds) */
+	if (*tmpstr == '\0' || !strcmp(tmpstr, "s")) {
+		ts->tv_sec = (time_t) tmpul;
+	} else if (!strcmp(tmpstr, "ms")) {
+		/* get full seconds */
+		ts->tv_sec = tmpul/1000;
+		/* get milliseconds */
+		ts->tv_nsec = 1000000 * (tmpul % 1000);
+
 	} else {
 		return E_INVAL;
 	}
