@@ -170,6 +170,12 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		if (*tmpstr == '\0' && tmpul != 0) {
 			/* add PID to the list */
 			struct proc * proc = malloc(sizeof(struct proc));
+			if (proc==NULL) {
+				retval = E_FAIL;
+				go(GO_ERR, "Could not allocate memory"
+					   "for struct proc\n");
+				break;
+			}
 			proc->pid = (unsigned) tmpul;
 			SLIST_INSERT_HEAD(proclist, proc, procs);
 		} else {
