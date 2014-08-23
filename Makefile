@@ -1,7 +1,7 @@
 include config.mk
 
 TARGET=procwait
-OBJS=go.o proc.o procwait.o
+OBJS=go.o proc.o procwait.o strutil.o
 MAN=$(TARGET).1
 
 ifdef VERSION
@@ -21,6 +21,9 @@ proc.o: proc.c proc.h error.h go.h queue.h
 
 procwait.o: procwait.c error.h proc.h queue.h
 	$(CC) -c $(CFLAGS) $(VFLAG) $< -o $@
+
+strutil.o: strutil.c strutil.h error.h
+	$(CC) -c $(CFLAGS) $< -o $@
 
 man: $(MAN)
 

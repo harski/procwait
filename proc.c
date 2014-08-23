@@ -10,6 +10,7 @@
 #include "error.h"
 #include "go.h"
 #include "proc.h"
+#include "strutil.h"
 
 #define FILENAME_BUF_LEN 32
 
@@ -30,19 +31,10 @@ static int handle_field (const unsigned field, const char * const field_buf,
 			 struct proc * restrict p)
 {
 	int success = E_SUCCESS;
-	char *endptr;
 
 	switch (field) {
 	case STAT_PID:
-		p->pid = strtoul(field_buf, &endptr, 10);
-		/* if field wasn't completely parsed something is fundamentally
-		 * wrong with the stat file */
-		if (*endptr != '\0') {
-			go(GO_ERR, "Failed to parse PID field from"
-				   " /proc/PID/stat\n");
-			p->pid = 0;
-			success = E_FAIL;
-		}
+		success = strtou(field_buf, &(p->pid));
 		break;
 
 	case STAT_PNAME:
@@ -51,15 +43,7 @@ static int handle_field (const unsigned field, const char * const field_buf,
 		break;
 
 	case STAT_T0:
-		p->t0 = strtoul(field_buf, &endptr, 10);
-		/* if field wasn't completely parsed something is fundamentally
-		 * wrong with the stat file */
-		if (*endptr != '\0') {
-			go(GO_ERR, "Error: failed to parse process start "
-				   "time from /proc/PID/stat\n");
-			p->t0 = 0;
-			success = E_FAIL;
-		}
+		success = strtou(field_buf, &(p->t0));
 		break;
 
 	default:

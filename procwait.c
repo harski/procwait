@@ -12,6 +12,7 @@
 #include "go.h"
 #include "proc.h"
 #include "queue.h"
+#include "strutil.h"
 
 #define PROGNAME "procwait"
 
@@ -116,8 +117,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 	int retval = E_SUCCESS;
 
 	/* temp values for argv validation */
-	char *tmpstr;
-	unsigned long tmpul;
+	unsigned tmpu;
 
 	while (!retval) {
 		int option;
@@ -166,8 +166,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 
 	/* check if PID is supplied */
 	while (optind != argc) {
-		tmpul = strtoul(argv[optind], &tmpstr, 10);
-		if (*tmpstr == '\0' && tmpul != 0) {
+		if (strtou(argv[optind], &tmpu) == E_SUCCESS) {
 			/* add PID to the list */
 			struct proc * proc = malloc(sizeof(struct proc));
 			if (proc==NULL) {
@@ -176,7 +175,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 					   "for struct proc\n");
 				break;
 			}
-			proc->pid = (unsigned) tmpul;
+			proc->pid = tmpu;
 			SLIST_INSERT_HEAD(proclist, proc, procs);
 		} else {
 			go(GO_ERR, "Invalid PID '%s'\n", argv[optind]);
