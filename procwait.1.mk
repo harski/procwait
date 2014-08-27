@@ -12,6 +12,9 @@ is terminated.
 \fB-h\fP, \fB--help\fP
 Shows brief help and exits.
 .TP
+\fB-q\fP, \fB--quiet\fP
+Only print essential output and errors.
+.TP
 \fB-s\fP \fINUM\fP[ms], \fB--sleep\fP \fINUM\fP[ms]
 Seconds (milliseconds) to sleep between process checks.
 .TP

@@ -23,7 +23,8 @@ void go (const enum GO_LVL lvl, const char *fmt, ...)
 		break;
 
 	case GO_MESS:
-		if (go_lvl <= GO_NORMAL) {
+		/* print normal messages if lvl is normal or higher */
+		if (go_lvl >= GO_NORMAL) {
 			print = true;
 		}
 		break;

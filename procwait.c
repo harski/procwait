@@ -124,13 +124,14 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"help",	no_argument,		0, 'h'},
+			{"quiet",	no_argument,		0, 'q'},
 			{"sleep",	required_argument,	0, 's'},
 			{"verbose",	no_argument,		0, 'v'},
 			{"version",	no_argument,		0, 'V'},
 			{0,		0,			0,  0 }
 		};
 
-		option = getopt_long(argc, argv, "hs:v", long_options,
+		option = getopt_long(argc, argv, "hqs:v", long_options,
 				     &option_index);
 		if (option == -1)
 			break;
@@ -138,6 +139,9 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		switch (option) {
 		case 'h':
 			opt->action = A_HELP;
+			break;
+		case 'q':
+			go_set_lvl(GO_QUIET);
 			break;
 		case 's':
 			if (parse_sleep_time(optarg, &opt->sleep) == E_INVAL) {
@@ -221,6 +225,9 @@ static void print_help ()
 	go(GO_ESS, "-h, --help\n"
 		   "\tPrint this help.\n");
 
+	go(GO_ESS, "-q, --quiet\n"
+		   "\tOnly print essential output and errors.\n");
+
 	go(GO_ESS, "-s NUM[ms], --sleep NUM[ms]\n"
 		   "\tSleep NUM seconds (milliseconds) between"
 		   "process checks.\n");
@@ -244,10 +251,10 @@ static int procwait (const struct options * const opt,
 		return E_FAIL;
 	}
 
-	/* check that process is running and get initial info on it */
+	/* check that processes are running and get initial info on then */
 	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 		if (parse_stat_file(proc->pid, proc) == E_SUCCESS) {
-			go(GO_INFO,
+			go(GO_MESS,
 			   "Waiting for PID %u %s to terminate\n",
 			   proc->pid, proc->name);
 		} else {
@@ -259,6 +266,9 @@ static int procwait (const struct options * const opt,
 
 	/* main wait loop */
 	while (!SLIST_EMPTY(proclist)) {
+		go(GO_INFO, "Sleeping for %u.%03.3u seconds\n",
+		   (unsigned) opt->sleep.tv_sec,
+		   (unsigned) opt->sleep.tv_nsec / 1000000);
 		nanosleep(&opt->sleep, NULL);
 
 		SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
@@ -271,7 +281,7 @@ static int procwait (const struct options * const opt,
 			    !proc_eq(proc, &tmp)) {
 				SLIST_REMOVE(proclist,
 					     proc, proc, procs);
-				go(GO_INFO, "Process %u %s terminated\n",
+				go(GO_MESS, "Process %u %s terminated\n",
 				   proc->pid, proc->name);
 				free(proc);
 			}
