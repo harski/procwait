@@ -25,6 +25,14 @@ procwait.o: procwait.c error.h proc.h queue.h
 strutil.o: strutil.c strutil.h error.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+dist: clean
+	mkdir -p $(TARGET)-$(VERSION)
+	@cp -R LICENSE Makefile README config.mk procwait.1.mk *.c *.h \
+		$(TARGET)-$(VERSION)
+	@tar -cf $(TARGET)-$(VERSION).tar $(TARGET)-$(VERSION)
+	@gzip $(TARGET)-$(VERSION).tar
+	@rm -rf $(TARGET)-$(VERSION)
+
 man: $(MAN)
 
 $(MAN): $(MAN).mk
