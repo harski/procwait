@@ -19,7 +19,7 @@ go.o: go.c go.h
 proc.o: proc.c proc.h error.h go.h queue.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-procwait.o: procwait.c error.h proc.h queue.h
+procwait.o: procwait.c error.h proc.h queue.h config.mk
 	$(CC) -c $(CFLAGS) $(VFLAG) $< -o $@
 
 strutil.o: strutil.c strutil.h error.h
