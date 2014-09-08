@@ -2,7 +2,7 @@ PROCWAIT
 ========
 
 Procwait is a Linux program written in C. It allows to wait for a process
-identified by process ID to die. It is analoguous to `wait` but can be used to
+identified by process ID to die. It is analoguous to *wait* but can be used to
 wait any process to terminate instead of its children. When the tracked process
 terminates, procwait terminates too.
 
@@ -10,12 +10,12 @@ terminates, procwait terminates too.
 COMPILING, INSTALLING AND UNINSTALLING
 --------------------------------------
 
-The intended workflow expects a `make` utility. Edit the config.mk file to suit
+The intended workflow expects a *make* utility. Edit the config.mk file to suit
 your system. To build the program run
 
     $ make
 
-The Makefile also has 'install' and 'uninstall' targets. After you have
+The Makefile also has *install* and *uninstall* targets. After you have
 adjusted the variables in config.mk and build the program you can install it by
 issuing
 
