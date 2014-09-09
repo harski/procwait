@@ -39,6 +39,7 @@ enum {
 
 static int do_action (const struct options * const opt,
 		      struct proclist * restrict proclist);
+static inline void clear_pidlist(struct proclist * restrict proclist);
 static void load_default_opts (struct options * restrict opt);
 static int parse_options (int argc, char **argv, struct options * restrict opt,
 			  struct proclist * restrict proclist);
@@ -94,6 +95,18 @@ static int do_action (const struct options * const opt,
 	}
 
 	return retval;
+}
+
+
+static inline void clear_pidlist(struct proclist * restrict proclist)
+{
+	struct proc * proc;
+
+	while (!SLIST_EMPTY(proclist)) {
+		proc = SLIST_FIRST(proclist);
+		SLIST_REMOVE_HEAD(proclist, procs);
+		free(proc);
+	}
 }
 
 
@@ -187,6 +200,11 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		}
 		++optind;
 	}
+
+	/* error was encountered with PID parsing make sure the pidlist is
+	 * cleared before returning */
+	if (retval != E_SUCCESS)
+		clear_pidlist(proclist);
 
 	return retval;
 }
