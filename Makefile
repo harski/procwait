@@ -39,14 +39,14 @@ $(MAN): $(MAN).mk
 	sed s/VERSION/$(VERSION)/ < $< > $@
 
 install: $(TARGET) $(MAN)
-	@mkdir -p $(PREFIX)/bin
-	install -m 0755 $(TARGET) $(PREFIX)/bin
-	@mkdir -p $(MANPREFIX)/man1
-	install -m 0644 $(MAN) $(MANPREFIX)/man1
+	@mkdir -p $(DESTDIR)$(PREFIX)/bin
+	install -m 0755 $(TARGET) $(DESTDIR)$(PREFIX)/bin
+	@mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+	install -m 0644 $(MAN) $(DESTDIR)$(MANPREFIX)/man1
 
 uninstall:
-	rm $(PREFIX)/bin/$(TARGET)
-	rm $(MANPREFIX)/man1/$(MAN)
+	rm $(DESTDIR)$(PREFIX)/bin/$(TARGET)
+	rm $(DESTDIR)$(MANPREFIX)/man1/$(MAN)
 
 clean:
 	rm -f $(TARGET) $(OBJS) $(MAN)
