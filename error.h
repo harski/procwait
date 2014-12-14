@@ -11,4 +11,3 @@ enum Error {
 };
 
 #endif
-

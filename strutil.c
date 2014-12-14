@@ -31,4 +31,3 @@ int strtou (const char * const str, unsigned * restrict u)
 
 	return succ;
 }
-

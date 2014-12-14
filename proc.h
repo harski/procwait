@@ -25,4 +25,3 @@ bool proc_eq (const struct proc * const p1, const struct proc * const p2);
 bool validate_proc (const struct proc * const p);
 
 #endif
-
