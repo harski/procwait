@@ -2,9 +2,26 @@ PROCWAIT
 ========
 
 Procwait is a Linux program written in C. It allows to wait for a process
-identified by process ID to die. It is analoguous to *wait* but can be used to
+identified by process ID to die. It is analogous to *wait* but can be used to
 wait any process to terminate instead of its children. When the tracked process
 terminates, procwait terminates too.
+
+
+HOW IT WORKS
+------------
+
+A process is perceived to be running if there exists a directory called
+/proc/PID. Simply relying on polling whether the directory still exists is racy,
+however: the tracked process can terminate and a new process can spawn with the
+same PID before the directory is polled again. It may not be very likely in most
+use-cases as there are /proc/sys/kernel/pid_max available PIDs, but possible.
+
+When procwait is started the name of the tracked processes and their start times
+are saved. To reduce the possibility of a race conditions the contents of
+/proc/PID/stat is read every time a process is polled, and if the process' start
+time or the process' name doesn't match to the information saved during procwait
+startup the process is considered to have changed and thus the tracked process
+is considered to have terminated.
 
 
 COMPILING, INSTALLING AND UNINSTALLING
@@ -26,11 +43,11 @@ and uninstall with
     $ make uninstall
 
 
-DOCUMENTATION
--------------
+USAGE
+-----
 
-For additional information about the program usage and options see the procwait
-manpage procwait.1. Man page is generated when you build to program or issue
+For information about the program usage and options see the procwait manpage
+procwait.1. Man page is generated when you build to program or issue
 
    $ make procwait.1
 
