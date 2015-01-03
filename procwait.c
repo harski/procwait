@@ -269,7 +269,7 @@ static int procwait (const struct options * const opt,
 		return E_FAIL;
 	}
 
-	/* check that processes are running and get initial info on then */
+	/* check that processes are running and populate structs */
 	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 		if (parse_stat_file(proc->pid, proc) == E_SUCCESS) {
 			go(GO_MESS,
