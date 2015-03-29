@@ -1,10 +1,10 @@
 PROCWAIT
 ========
 
-Procwait is a Linux program written in C. It allows to wait for a process
-identified by process ID to die. It is analogous to *wait* but can be used to
-wait any process to terminate instead of its children. When the tracked process
-terminates, procwait terminates too.
+Procwait allows to wait for processes identified by process IDs to die. It is
+analogous to *wait* but can be used to wait any process to terminate instead of
+only its own child processes. When all the tracked process terminates, procwait
+terminates too. Procwait is a Linux program written in C.
 
 
 HOW IT WORKS

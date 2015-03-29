@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Tuomo Hartikainen <tth@harski.org>.
+/* Copyright 2013-2015 Tuomo Hartikainen <tth@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <getopt.h>
@@ -20,14 +20,16 @@
 #define VERSION "unknown (" __DATE__ ")"
 #endif
 
-#define LICENSE_STR "Copyright 2013-2014 Tuomo Hartikainen "\
-			"<tth@harski.org>.\n"\
-			"Licensed under the 2-clause BSD license."
+#define LICENSE_STR "Copyright 2013-2015 Tuomo Hartikainen "\
+		    "<tth@harski.org>.\n"\
+		    "Licensed under the 2-clause BSD license."
 
+#define DEFAULT_SLEEP_SEC 1
+#define DEFAULT_SLEEP_NSEC 0
 
 struct options {
-	int action;	/* selected action */
-	struct timespec sleep;
+	int action;		/* selected action */
+	struct timespec sleep;	/* time to sleep between polls (PID stats) */
 };
 
 /* available actions */
@@ -113,8 +115,8 @@ static inline void clear_pidlist(struct proclist * restrict proclist)
 static void load_default_opts (struct options * restrict opt)
 {
 	opt->action = A_PROCWAIT;
-	opt->sleep.tv_sec = 1;
-	opt->sleep.tv_nsec = 0;
+	opt->sleep.tv_sec = DEFAULT_SLEEP_SEC;
+	opt->sleep.tv_nsec = DEFAULT_SLEEP_NSEC;
 	go_set_lvl(GO_NORMAL);
 
 #if DEBUG
@@ -123,7 +125,7 @@ static void load_default_opts (struct options * restrict opt)
 }
 
 
-/* returns E_SUCCESS on success, error code for errors */
+/* returns E_SUCCESS on success, or an error code in case of an error */
 static int parse_options (int argc, char **argv, struct options * restrict opt,
 			  struct proclist * restrict proclist)
 {
@@ -178,8 +180,9 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 
 	/* if argv parsing has already failed or a secondary action has been
 	 * selected PID parsing is not necessary */
-	if (retval == E_INVAL || opt->action != A_PROCWAIT)
+	if (retval == E_INVAL || opt->action != A_PROCWAIT) {
 		return retval;
+	}
 
 	/* check if PID is supplied */
 	while (optind != argc) {
@@ -201,7 +204,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		++optind;
 	}
 
-	/* error was encountered with PID parsing make sure the pidlist is
+	/* error was encountered in parsing PID; make sure the pidlist is
 	 * cleared before returning */
 	if (retval != E_SUCCESS)
 		clear_pidlist(proclist);
@@ -289,12 +292,14 @@ static int procwait (const struct options * const opt,
 		   (unsigned) opt->sleep.tv_nsec / 1000000);
 		nanosleep(&opt->sleep, NULL);
 
+		/* Check all processes still being tracked, and drop the
+		 * terminated ones from proclist */
 		SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 			/* read current stat file of PID */
 			struct proc tmp = { 0, "", 0, {NULL}};
 
-			/* check that stat could be read and the  process is
-			 * still the same */
+			/* Check that stat could be read and the process is
+			 * still the same. If not, drop it */
 			if (parse_stat_file(proc->pid, &tmp) ||
 			    !proc_eq(proc, &tmp)) {
 				SLIST_REMOVE(proclist,

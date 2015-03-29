@@ -38,7 +38,8 @@ static int handle_field (const unsigned field, const char * const field_buf,
 		break;
 
 	case STAT_PNAME:
-		/* just copy the process name. both fields are STAT_COL_LEN */
+		/* Just copy the process name, both field's width is
+		 * STAT_COL_LEN */
 		strcpy(p->name, field_buf);
 		break;
 
@@ -65,7 +66,7 @@ int parse_stat_file (const unsigned pid, struct proc * restrict p)
 	file = fopen(filename, "r");
 
 	if (file == NULL) {
-		/* check if error is file not existing (which is ok, the
+		/* check if error is 'file does not exist' (which is ok, the
 		 * process has terminated) or if some other error happened */
 		if (errno != ENOENT)
 			error(0, errno, "parse_proc()");
