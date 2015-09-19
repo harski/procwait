@@ -62,6 +62,7 @@ int parse_stat_file (const unsigned pid, struct proc * restrict p)
 	FILE *file;
 	char filename[FILENAME_BUF_LEN];
 
+	/* TODO: check if FILENAME_BUF_LEN is sufficient */
 	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
 	file = fopen(filename, "r");
 
@@ -78,16 +79,11 @@ int parse_stat_file (const unsigned pid, struct proc * restrict p)
 		char field_buf[STAT_COL_LEN];
 
 		/* get next field */
-		for (int i = 0; ; ++i) {
-			int ch = fgetc(file);
+		int field_succ = get_next_field(file, field_buf, STAT_COL_LEN);
 
-			/* if ch is field separator terminate str and stop */
-			if (ch == ' ' ||  ch == EOF) {
-				field_buf[i] = '\0';
-				break;
-			} else {
-				field_buf[i] = (char) ch;
-			}
+		if (field_succ == STRUTIL_EXIT_TRUNCATED) {
+			go(GO_WARN, "Parsing field number %u in %s failed: "
+				    "too long record\n", field, filename);
 		}
 
 		/* if handling a required field fails, bail out */
