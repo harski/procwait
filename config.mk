@@ -1,7 +1,7 @@
 # Customize below to suit your system
 
 # procwait version
-VERSION = 1.1
+VERSION = 1.2
 
 # Paths
 PREFIX = /usr/local
