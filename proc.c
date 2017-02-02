@@ -57,14 +57,10 @@ static int handle_field (const unsigned field, const char * const field_buf,
 }
 
 
-int parse_stat_pid (const unsigned pid, struct proc * restrict p)
+int parse_stat_file (const char * path, struct proc * p)
 {
-	FILE *file;
-	char filename[FILENAME_BUF_LEN];
-
-	/* TODO: check if FILENAME_BUF_LEN is sufficient */
-	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
-	file = fopen(filename, "r");
+	int retval = E_SUCCESS;
+	FILE *file = fopen(path, "r");
 
 	if (file == NULL) {
 		/* check if error is 'file does not exist' (which is ok, the
@@ -83,15 +79,28 @@ int parse_stat_pid (const unsigned pid, struct proc * restrict p)
 
 		if (field_succ == STRUTIL_EXIT_TRUNCATED) {
 			go(GO_WARN, "Parsing field number %u in %s failed: "
-				    "too long record\n", field, filename);
+				    "too long record\n", field, path);
 		}
 
 		/* if handling a required field fails, bail out */
-		if (handle_field(field, field_buf, p) !=  E_SUCCESS)
+		if (handle_field(field, field_buf, p) !=  E_SUCCESS) {
+			retval = E_FAIL;
 			break;
+		}
 	}
 
 	fclose(file);
+	return retval;
+}
+
+
+int parse_stat_pid (const unsigned pid, struct proc * restrict p)
+{
+	char filename[FILENAME_BUF_LEN];
+
+	/* TODO: check if FILENAME_BUF_LEN is sufficient */
+	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
+	parse_stat_file (filename, p);
 
 	return validate_proc(p) ? E_SUCCESS : E_FAIL;
 }

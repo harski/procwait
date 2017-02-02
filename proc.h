@@ -20,6 +20,7 @@ struct proc {
 
 SLIST_HEAD(proclist, proc);
 
+int parse_stat_file (const char * path, struct proc * p);
 int parse_stat_pid (const unsigned pid, struct proc * restrict p);
 bool proc_eq (const struct proc * const p1, const struct proc * const p2);
 bool validate_proc (const struct proc * const p);
