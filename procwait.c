@@ -276,7 +276,7 @@ static int procwait (const struct options * const opt,
 	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
 		if (parse_stat_pid(proc->pid, proc) == E_SUCCESS) {
 			go(GO_MESS,
-			   "Waiting for PID %u %s to terminate\n",
+			   "Waiting for PID %u (%s) to terminate\n",
 			   proc->pid, proc->name);
 		} else {
 			go(GO_MESS, "Process %u not running\n", proc->pid);

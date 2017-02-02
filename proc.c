@@ -23,8 +23,26 @@ enum {
 };
 
 
+static void cp_pname_field(char *dest, const char *src);
 static int handle_field (const unsigned field, const char * const field_buf,
 			 struct proc * restrict p);
+
+
+static void cp_pname_field(char *dest, const char *src)
+{
+	/* skip the leading '(' */
+	++src;
+	/* Just copy the process name, both field's width is STAT_COL_LEN */
+	strcpy(dest, src);
+	int i = 0;
+	while (src[i] != '\0') {
+		dest[i] = src[i];
+		++i;
+	}
+
+	/* skip the trailing ')' */
+	dest[i-1] = '\0';
+}
 
 
 static int handle_field (const unsigned field, const char * const field_buf,
@@ -38,9 +56,7 @@ static int handle_field (const unsigned field, const char * const field_buf,
 		break;
 
 	case STAT_PNAME:
-		/* Just copy the process name, both field's width is
-		 * STAT_COL_LEN */
-		strcpy(p->name, field_buf);
+		cp_pname_field(p->name, field_buf);
 		break;
 
 	case STAT_T0:
