@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Tuomo Hartikainen <tth@harski.org>.
+/* Copyright 2013-2017 Tuomo Hartikainen <tth@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #ifndef PW_PROC_H
@@ -20,7 +20,7 @@ struct proc {
 
 SLIST_HEAD(proclist, proc);
 
-int parse_stat_file (const unsigned pid, struct proc * restrict p);
+int parse_stat_pid (const unsigned pid, struct proc * restrict p);
 bool proc_eq (const struct proc * const p1, const struct proc * const p2);
 bool validate_proc (const struct proc * const p);
 

@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Tuomo Hartikainen <tth@harski.org>.
+/* Copyright 2013-2017 Tuomo Hartikainen <tth@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <errno.h>
@@ -57,7 +57,7 @@ static int handle_field (const unsigned field, const char * const field_buf,
 }
 
 
-int parse_stat_file (const unsigned pid, struct proc * restrict p)
+int parse_stat_pid (const unsigned pid, struct proc * restrict p)
 {
 	FILE *file;
 	char filename[FILENAME_BUF_LEN];

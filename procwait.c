@@ -1,4 +1,4 @@
-/* Copyright 2013-2015 Tuomo Hartikainen <tth@harski.org>.
+/* Copyright 2013-2017 Tuomo Hartikainen <tth@harski.org>.
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <getopt.h>
@@ -274,7 +274,7 @@ static int procwait (const struct options * const opt,
 
 	/* check that processes are running and populate structs */
 	SLIST_FOREACH_SAFE(proc, proclist, procs, tmp_proc) {
-		if (parse_stat_file(proc->pid, proc) == E_SUCCESS) {
+		if (parse_stat_pid(proc->pid, proc) == E_SUCCESS) {
 			go(GO_MESS,
 			   "Waiting for PID %u %s to terminate\n",
 			   proc->pid, proc->name);
@@ -300,7 +300,7 @@ static int procwait (const struct options * const opt,
 
 			/* Check that stat could be read and the process is
 			 * still the same. If not, drop it */
-			if (parse_stat_file(proc->pid, &tmp) ||
+			if (parse_stat_pid(proc->pid, &tmp) ||
 			    !proc_eq(proc, &tmp)) {
 				SLIST_REMOVE(proclist,
 					     proc, proc, procs);
