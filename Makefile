@@ -1,7 +1,7 @@
 include config.mk
 
 TARGET=procwait
-OBJS=go.o proc.o procwait.o strutil.o
+OBJS=fileutil.o go.o proc.o procwait.o strutil.o
 MAN=$(TARGET).1
 
 ifdef VERSION
@@ -12,6 +12,9 @@ all: $(TARGET) $(MAN)
 
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $(CFLAGS) $(OBJS)
+
+fileutil.o: fileutil.c fileutil.h
+	$(CC) -c $(CFLAGS) $< -o $@
 
 go.o: go.c go.h
 	$(CC) -c $(CFLAGS) $< -o $@
