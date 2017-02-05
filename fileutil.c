@@ -2,6 +2,7 @@
  * Licensed under the 2-clause BSD license, see LICENSE for details. */
 
 #include <dirent.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,10 +11,37 @@
 #include "fileutil.h"
 
 
+static bool is_numeric (const char *str)
+{
+	for (int i = 0; str[i] != '\0'; ++i) {
+		if (str[i] < 48 || str[i] > 57)
+			return 0;
+	}
+
+	return 1;
+}
+
+
 void file_destroy (struct file * f)
 {
 	free(f->path);
 	free(f);
+}
+
+
+void filter_numeric_dirs (struct filelist * filelist)
+{
+	struct file *fp, *fp_tmp;
+	char *str;
+
+	SLIST_FOREACH_SAFE(fp, filelist, files, fp_tmp) {
+		/* skip "/proc/" */
+		str = fp->path + 6;
+		if (!is_numeric(str)) {
+			SLIST_REMOVE(filelist, fp, file, files);
+			file_destroy(fp);
+		}
+	}
 }
 
 
