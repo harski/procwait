@@ -113,8 +113,6 @@ int parse_stat_file (const char * path, struct proc * p)
 int parse_stat_pid (const unsigned pid, struct proc * restrict p)
 {
 	char filename[FILENAME_BUF_LEN];
-
-	/* TODO: check if FILENAME_BUF_LEN is sufficient */
 	snprintf(filename, FILENAME_BUF_LEN, "/proc/%u/stat", pid);
 	parse_stat_file (filename, p);
 
