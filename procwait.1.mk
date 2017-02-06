@@ -12,6 +12,9 @@ is terminated.
 \fB-h\fP, \fB--help\fP
 Shows brief help and exits.
 .TP
+\fB-n \fINAME\fP, \fB--name \fINAME\fP
+Parse PID from process NAME.
+.TP
 \fB-q\fP, \fB--quiet\fP
 Only print essential output and errors.
 .TP
