@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "error.h"
+#include "fileutil.h"
 #include "go.h"
 #include "proc.h"
 #include "queue.h"
@@ -43,6 +44,8 @@ static int do_action (const struct options * const opt,
 		      struct proclist * restrict proclist);
 static inline void clear_pidlist(struct proclist * restrict proclist);
 static void load_default_opts (struct options * restrict opt);
+static int parse_name_to_proc(struct filelist *fl, const char * const str,
+			      struct proclist * restrict proclist);
 static int parse_options (int argc, char **argv, struct options * restrict opt,
 			  struct proclist * restrict proclist);
 static int parse_sleep_time (const char * const timestr,
@@ -125,11 +128,32 @@ static void load_default_opts (struct options * restrict opt)
 }
 
 
+/* if process name is too long, the end is truncated. it's ok, since the stat
+ * file column for the process name is truncated too. */
+static int parse_name_to_proc(struct filelist *fl, const char * const str,
+			      struct proclist * restrict proclist)
+{
+	/* check if proc pname exists */
+	if (find_pid(fl, str, proclist) == 0) {
+		go(GO_ERR, "No process called '%s' was found.\n", str);
+	}
+
+	return E_SUCCESS;
+}
+
+
 /* returns E_SUCCESS on success, or an error code in case of an error */
 static int parse_options (int argc, char **argv, struct options * restrict opt,
 			  struct proclist * restrict proclist)
 {
 	int retval = E_SUCCESS;
+
+	/* temproray list of all running processes. used for matching a process
+	 * name to its PID */
+	/* TODO: do this iff --name is supplied */
+	struct filelist fl;
+	SLIST_INIT(&fl);
+	get_proc_dirs(&fl);
 
 	/* temp values for argv validation */
 	unsigned tmpu;
@@ -139,6 +163,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"help",	no_argument,		0, 'h'},
+			{"name",	required_argument,	0, 'n'},
 			{"quiet",	no_argument,		0, 'q'},
 			{"sleep",	required_argument,	0, 's'},
 			{"verbose",	no_argument,		0, 'v'},
@@ -146,7 +171,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 			{0,		0,			0,  0 }
 		};
 
-		option = getopt_long(argc, argv, "hqs:v", long_options,
+		option = getopt_long(argc, argv, "hn:qs:v", long_options,
 				     &option_index);
 		if (option == -1)
 			break;
@@ -154,6 +179,9 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 		switch (option) {
 		case 'h':
 			opt->action = A_HELP;
+			break;
+		case 'n':
+			parse_name_to_proc(&fl, optarg, proclist);
 			break;
 		case 'q':
 			go_set_lvl(GO_QUIET);
@@ -176,6 +204,13 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 			/* unknown option: quit */
 			retval = E_INVAL;
 		}
+	}
+
+	/* free filelist */
+	while (!SLIST_EMPTY(&fl)) {
+		struct file *f = SLIST_FIRST(&fl);
+		SLIST_REMOVE_HEAD(&fl, files);
+		file_destroy(f);
 	}
 
 	/* if argv parsing has already failed or a secondary action has been
@@ -245,6 +280,9 @@ static void print_help ()
 
 	go(GO_ESS, "-h, --help\n"
 		   "\tPrint this help.\n");
+
+	go(GO_ESS, "-n NAME, --name NAME\n"
+		   "\tParse PID from process NAME.\n");
 
 	go(GO_ESS, "-q, --quiet\n"
 		   "\tOnly print essential output and errors.\n");
