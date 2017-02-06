@@ -122,7 +122,7 @@ int parse_stat_pid (const unsigned pid, struct proc * restrict p)
 }
 
 
-/* if PID or start time are left uninialized return false */
+/* if PID or start time are left uninitialized, return false */
 bool proc_eq (const struct proc * const p1, const struct proc * const p2)
 {
 	if (p1->pid == p2->pid && p1->t0 == p2->t0)
