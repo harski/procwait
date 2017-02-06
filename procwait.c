@@ -149,11 +149,10 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 	int retval = E_SUCCESS;
 
 	/* temproray list of all running processes. used for matching a process
-	 * name to its PID */
-	/* TODO: do this iff --name is supplied */
+	 * name to its PID. the list is initialized only if --name argument is
+	 * set. */
 	struct filelist fl;
-	SLIST_INIT(&fl);
-	get_proc_dirs(&fl);
+	bool fl_init = false;
 
 	/* temp values for argv validation */
 	unsigned tmpu;
@@ -181,6 +180,12 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 			opt->action = A_HELP;
 			break;
 		case 'n':
+			/* file list is not initialized, init it */
+			if (!fl_init) {
+				fl_init = true;
+				SLIST_INIT(&fl);
+				get_proc_dirs(&fl);
+			}
 			parse_name_to_proc(&fl, optarg, proclist);
 			break;
 		case 'q':
@@ -207,10 +212,12 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 	}
 
 	/* free filelist */
-	while (!SLIST_EMPTY(&fl)) {
-		struct file *f = SLIST_FIRST(&fl);
-		SLIST_REMOVE_HEAD(&fl, files);
-		file_destroy(f);
+	if (fl_init) {
+		while (!SLIST_EMPTY(&fl)) {
+			struct file *f = SLIST_FIRST(&fl);
+			SLIST_REMOVE_HEAD(&fl, files);
+			file_destroy(f);
+		}
 	}
 
 	/* if argv parsing has already failed or a secondary action has been
