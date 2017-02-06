@@ -21,7 +21,7 @@
 #define VERSION "unknown (" __DATE__ ")"
 #endif
 
-#define LICENSE_STR "Copyright 2013-2015 Tuomo Hartikainen "\
+#define LICENSE_STR "Copyright 2013-2017 Tuomo Hartikainen "\
 		    "<tth@harski.org>.\n"\
 		    "Licensed under the 2-clause BSD license."
 
