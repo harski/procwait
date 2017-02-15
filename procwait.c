@@ -170,7 +170,7 @@ static int parse_options (int argc, char **argv, struct options * restrict opt,
 			{0,		0,			0,  0 }
 		};
 
-		option = getopt_long(argc, argv, "hn:qs:v", long_options,
+		option = getopt_long(argc, argv, "hn:qs:vV", long_options,
 				     &option_index);
 		if (option == -1)
 			break;
